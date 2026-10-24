@@ -22,6 +22,7 @@ import {
   type PuzzleState,
 } from './game/puzzle';
 import { RoomAudio } from './game/audio';
+import SchoolChapter from './game/SchoolChapter';
 
 export type GameFrontendCallbacks = {
   onStart?: () => void;
@@ -59,6 +60,7 @@ function targetForButton(target: InteractionTarget) {
 }
 
 function App({ callbacks = {} }: Props) {
+  const [chapter, setChapter] = useState<'living-room' | 'school'>('living-room');
   const [puzzle, setPuzzle] = useState<PuzzleState>(() => createPuzzleState());
   const [screen, setScreen] = useState<'title' | 'playing' | 'paused' | 'settings' | 'complete'>('title');
   const [previousScreen, setPreviousScreen] = useState<'title' | 'playing' | 'paused' | 'complete'>('title');
@@ -159,6 +161,8 @@ function App({ callbacks = {} }: Props) {
     audioRef.current?.dispose();
   }, []);
 
+  if (chapter === 'school') return <SchoolChapter onBack={() => setChapter('living-room')} />;
+
   const objective = getObjective(puzzle);
   const progress = [puzzle.hasRemote, puzzle.roomFlipped, puzzle.switchActivated, puzzle.complete];
   const overlay = screen === 'title' || screen === 'paused' || screen === 'settings' || screen === 'complete';
@@ -183,7 +187,7 @@ function App({ callbacks = {} }: Props) {
             <p className="eyebrow">Chapter 01 / The living room</p>
             <h1>A perfectly normal room.</h1>
           </div>
-          <div className="chapter-pill"><b>DAY 01</b>&nbsp; · &nbsp;No one is home</div>
+          <div className="chapter-pill"><b>DAY 01</b>&nbsp; Â· &nbsp;No one is home</div>
         </div>
 
         <section className="stage" aria-label="Game scene">
@@ -225,11 +229,11 @@ function App({ callbacks = {} }: Props) {
           )}
           {isActive && showJournal && (
             <aside className="journal-card" id="field-notes" aria-label="Room field notes">
-              <div className="journal-heading"><div><small>OBSERVATION LOG</small><strong>Things that are definitely normal</strong></div><button type="button" aria-label="Close field notes" onClick={() => setShowJournal(false)}>×</button></div>
+              <div className="journal-heading"><div><small>OBSERVATION LOG</small><strong>Things that are definitely normal</strong></div><button type="button" aria-label="Close field notes" onClick={() => setShowJournal(false)}>Ã—</button></div>
               <p className="journal-summary">{puzzle.inspected.length === 5 ? 'All five oddities documented. You are either thorough or avoiding the exit.' : `${5 - puzzle.inspected.length} ${5 - puzzle.inspected.length === 1 ? 'oddity remains' : 'oddities remain'} to investigate.`}</p>
               <ul>{fieldNotes.map((entry) => {
                 const found = puzzle.inspected.includes(entry.target);
-                return <li key={entry.target} className={found ? 'note-found' : ''}><span className="note-mark">{found ? '✓' : '·'}</span><div><strong>{found ? entry.title : '??? — Unconfirmed oddity'}</strong><p>{found ? entry.note : 'Look around and inspect something suspicious.'}</p></div></li>;
+                return <li key={entry.target} className={found ? 'note-found' : ''}><span className="note-mark">{found ? 'âœ“' : 'Â·'}</span><div><strong>{found ? entry.title : '??? â€” Unconfirmed oddity'}</strong><p>{found ? entry.note : 'Look around and inspect something suspicious.'}</p></div></li>;
               })}</ul>
             </aside>
           )}
@@ -241,7 +245,7 @@ function App({ callbacks = {} }: Props) {
                   <div className="dialog-kicker">Make yourself at home</div>
                   <h2 id="settings-title">Settings</h2>
                   <p>Fine-tune the room. It will pretend not to notice.</p>
-                  <label className="settings-row"><span>Look speed</span><input type="range" min=".4" max="2" step=".1" value={sensitivity} onChange={(event) => changeSensitivity(Number(event.target.value))} data-testid="input-sensitivity" /><span className="settings-value">{sensitivity.toFixed(1)}×</span></label>
+                  <label className="settings-row"><span>Look speed</span><input type="range" min=".4" max="2" step=".1" value={sensitivity} onChange={(event) => changeSensitivity(Number(event.target.value))} data-testid="input-sensitivity" /><span className="settings-value">{sensitivity.toFixed(1)}Ã—</span></label>
                   <label className="settings-row"><span>Sound level</span><input type="range" min="0" max="1" step=".01" value={volume} onChange={(event) => changeVolume(Number(event.target.value))} data-testid="input-volume" /><span className="settings-value">{Math.round(volume * 100)}%</span></label>
                   <div className="dialog-buttons"><button type="button" className="primary-button" data-testid="button-settings-done" onClick={() => setScreen(previousScreen)}><Check size={15} /> All set</button></div>
                 </div>
@@ -273,6 +277,7 @@ function App({ callbacks = {} }: Props) {
                   <p>The plants applaud. The room looks exactly like the room next door. They seem nice, though.</p>
                   <div className="dialog-buttons">
                     <button className="primary-button" type="button" data-testid="button-replay" onClick={restartGame}><RotateCcw size={15} /> Play again</button>
+                    <button className="secondary-button" type="button" data-testid="button-next-chapter" onClick={() => setChapter('school')}>Next chapter: The School <ArrowRight size={16} /></button>
                     <button className="secondary-button" type="button" data-testid="button-complete-close" onClick={() => setScreen('playing')}><X size={15} /> Look around</button>
                   </div>
                   <div className="completion-stamp"><Check size={14} /> ROOM SUCCESSFULLY UN-ROOMED</div>
@@ -291,3 +296,4 @@ function App({ callbacks = {} }: Props) {
 }
 
 export default App;
+

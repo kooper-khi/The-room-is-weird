@@ -251,3 +251,25 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--coral); out
   .journal-button { top:65px; left:12px; padding:7px 8px; }
   .journal-card { top:106px; left:11px; width:min(340px,calc(100% - 22px)); max-height:calc(100% - 190px); padding:12px; }
 }
+
+
+/* Chapter 02: The Endless School */
+.school-stage { background:#080c13; border-color:#252d38; }
+.school-scene-host { position:absolute; inset:0; overflow:hidden; }
+.school-scene-host canvas { display:block; width:100%; height:100%; }
+.school-hud { position:absolute; inset:0; pointer-events:none; color:#f3f5f8; }
+.school-hud .objective { background:rgba(8,12,19,.82); border:1px solid rgba(190,207,232,.18); }
+.school-status { position:absolute; top:18px; right:18px; display:flex; align-items:center; gap:8px; padding:9px 12px; background:rgba(8,12,19,.8); border:1px solid rgba(190,207,232,.18); border-radius:7px; font:800 10px ui-monospace,monospace; letter-spacing:.1em; }
+.school-status span { width:7px; height:7px; border-radius:50%; background:#71e7c1; box-shadow:0 0 10px #71e7c1; }
+.school-status span.danger-dot { background:#ff465d; box-shadow:0 0 13px #ff2347; animation:school-pulse .6s infinite alternate; }
+.school-message { position:absolute; top:85px; left:50%; transform:translateX(-50%); width:min(90%,600px); padding:11px 15px; text-align:center; background:rgba(8,12,19,.78); border:1px solid rgba(190,207,232,.16); border-radius:7px; color:#e5e9f1; font-size:12px; }
+.school-controls { position:absolute; bottom:15px; left:50%; transform:translateX(-50%); white-space:nowrap; display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:6px; background:rgba(8,12,19,.82); color:#aab5c6; font:800 9px ui-monospace,monospace; letter-spacing:.08em; }
+.school-controls kbd { color:#f3f5f8; border:1px solid #566173; padding:4px 5px; border-radius:3px; }
+.school-hint-button { pointer-events:auto; bottom:62px; right:16px; top:auto; color:#f3f5f8; background:rgba(8,12,19,.85); }
+.school-hint { position:absolute; right:16px; bottom:105px; max-width:290px; padding:12px; border:1px solid #45536a; border-radius:7px; background:rgba(8,12,19,.94); color:#d9e0eb; font-size:12px; line-height:1.5; }
+.school-overlay { background:rgba(3,6,11,.66); }
+.school-overlay .dialog-card { border-color:#313b4a; }
+.school-shell .footer-bar { color:#aab5c6; }
+.school-shell .footer-bar strong { color:#e7edf8; }
+@keyframes school-pulse { from { opacity:.45; } to { opacity:1; } }
+@media (max-width:620px) { .school-controls { width:calc(100% - 20px); justify-content:center; gap:5px; font-size:7px; } .school-message { top:95px; font-size:10px; } .school-status { top:56px; right:10px; } }
