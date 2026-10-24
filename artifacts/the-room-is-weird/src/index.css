@@ -219,3 +219,35 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--coral); out
 @media (prefers-reduced-motion: reduce) {
   *, *:before, *:after { animation-duration:.01ms !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
 }
+
+/* Field-notes discovery journal */
+.journal-button {
+  position:absolute; left:20px; top:74px; z-index:3; display:flex; align-items:center; gap:7px;
+  border:1px solid rgba(255,255,255,.62); border-radius:7px; padding:8px 10px;
+  background:rgba(246,237,219,.94); color:var(--ink); font-size:10px; font-weight:800;
+  box-shadow:0 4px 14px rgba(29,43,43,.12); transition:transform .16s, background .16s;
+}
+.journal-button:hover { transform:translateY(-2px); background:#fff8e8; }
+.journal-button span { padding-left:7px; border-left:1px solid var(--line); color:#8d8577; font:800 9px ui-monospace,monospace; }
+.journal-card {
+  position:absolute; z-index:4; top:120px; left:20px; width:min(360px, calc(100% - 40px)); max-height:calc(100% - 210px);
+  overflow:auto; padding:15px 16px 12px; border:1px solid rgba(255,255,255,.8); border-radius:10px 10px 10px 3px;
+  background:rgba(246,237,219,.97); color:var(--ink); box-shadow:0 14px 35px rgba(24,37,39,.25);
+  backdrop-filter:blur(10px); animation:pop-in .18s ease-out both;
+}
+.journal-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.journal-heading small { display:block; margin-bottom:5px; color:#a08f71; font:800 9px ui-monospace,monospace; letter-spacing:.13em; }
+.journal-heading strong { display:block; font-size:14px; line-height:1.25; }
+.journal-heading button { border:0; border-radius:5px; width:25px; height:25px; flex:0 0 25px; background:#e9dfcc; color:var(--ink); font-size:21px; line-height:1; }
+.journal-summary { margin:9px 0 11px; color:#858071; font-size:10px; line-height:1.4; }
+.journal-card ul { display:grid; gap:7px; margin:0; padding:0; list-style:none; }
+.journal-card li { display:grid; grid-template-columns:20px 1fr; gap:7px; padding:8px; border-radius:6px; background:rgba(225,215,196,.48); }
+.journal-card li.note-found { background:rgba(113,169,132,.14); }
+.note-mark { display:grid; place-items:center; width:18px; height:18px; border-radius:50%; background:#d9cfbc; color:#8b8374; font:800 11px ui-monospace,monospace; }
+.note-found .note-mark { background:#6eae89; color:white; }
+.journal-card li strong { display:block; margin-bottom:3px; font-size:10px; }
+.journal-card li p { margin:0; color:#77766d; font-size:10px; line-height:1.4; }
+@media (max-width:760px) {
+  .journal-button { top:65px; left:12px; padding:7px 8px; }
+  .journal-card { top:106px; left:11px; width:min(340px,calc(100% - 22px)); max-height:calc(100% - 190px); padding:12px; }
+}

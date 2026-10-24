@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
+  BookOpen,
   Check,
   Eye,
   Move3D,
@@ -45,6 +46,14 @@ const targetNames: Record<InteractionTarget, string> = {
   bookshelf: 'Inspect the bookshelf',
 };
 
+const fieldNotes: { target: InteractionTarget; title: string; note: string }[] = [
+  { target: 'sofa', title: 'The suspicious sofa', note: 'It straightens its own cushions and claims it was your idea.' },
+  { target: 'television', title: 'Broadcast sandwich', note: 'A serious documentary. The sandwich appears to be winning.' },
+  { target: 'painting', title: 'The portrait', note: 'It blinks first. After the room flips, it develops a new perspective.' },
+  { target: 'lamp', title: 'The helpful lamp', note: 'It points toward the remote with absolutely no subtlety.' },
+  { target: 'bookshelf', title: 'Shelf literature', note: 'A book called How To Be A Shelf is filed under S.' },
+];
+
 function targetForButton(target: InteractionTarget) {
   return targetNames[target] ?? 'Look closer';
 }
@@ -58,6 +67,7 @@ function App({ callbacks = {} }: Props) {
   const [hovered, setHovered] = useState<InteractionTarget | null>(null);
   const [message, setMessage] = useState('');
   const [showHint, setShowHint] = useState(false);
+  const [showJournal, setShowJournal] = useState(false);
   const toastTimer = useRef<number | undefined>(undefined);
   const completionTimer = useRef<number | undefined>(undefined);
   const puzzleRef = useRef(puzzle);
@@ -111,6 +121,7 @@ function App({ callbacks = {} }: Props) {
     setHovered(null);
     setMessage('');
     setShowHint(false);
+    setShowJournal(false);
     setScreen('playing');
     callbacks.onRestart?.();
     callbacks.onPause?.(false);
@@ -207,6 +218,21 @@ function App({ callbacks = {} }: Props) {
             </button>
           )}
           {isActive && showHint && <div className="hint-card" role="status">{getHint(puzzle)}</div>}
+          {isActive && (
+            <button className="journal-button" type="button" aria-expanded={showJournal} aria-controls="field-notes" onClick={() => setShowJournal((visible) => !visible)}>
+              <BookOpen size={14} /> Field notes <span>{puzzle.inspected.length}/5</span>
+            </button>
+          )}
+          {isActive && showJournal && (
+            <aside className="journal-card" id="field-notes" aria-label="Room field notes">
+              <div className="journal-heading"><div><small>OBSERVATION LOG</small><strong>Things that are definitely normal</strong></div><button type="button" aria-label="Close field notes" onClick={() => setShowJournal(false)}>×</button></div>
+              <p className="journal-summary">{puzzle.inspected.length === 5 ? 'All five oddities documented. You are either thorough or avoiding the exit.' : `${5 - puzzle.inspected.length} ${5 - puzzle.inspected.length === 1 ? 'oddity remains' : 'oddities remain'} to investigate.`}</p>
+              <ul>{fieldNotes.map((entry) => {
+                const found = puzzle.inspected.includes(entry.target);
+                return <li key={entry.target} className={found ? 'note-found' : ''}><span className="note-mark">{found ? '✓' : '·'}</span><div><strong>{found ? entry.title : '??? — Unconfirmed oddity'}</strong><p>{found ? entry.note : 'Look around and inspect something suspicious.'}</p></div></li>;
+              })}</ul>
+            </aside>
+          )}
 
           {overlay && (
             <div className="overlay">
