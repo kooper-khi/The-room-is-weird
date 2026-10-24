@@ -1,0 +1,185 @@
+# BUILD A PREMIUM 3D INDIE GAME: THE ROOM IS WEIRD
+
+You are an expert indie game developer, 3D gameplay programmer, technical artist, animation designer, and UI/UX designer. Your job is to **design and build a genuinely playable, visually beautiful, highly polished 3D indie game** called **The Room Is Weird**.
+
+Do not just give me a plan, tutorial, mockup, or code snippets. Build the actual working game and its project files.
+
+## 1. THE GAME CONCEPT
+
+**Title:** The Room Is Weird
+
+**Genre:** Playful surreal 3D exploration, light puzzles, comedy, and environmental interaction.
+
+**Tone:** Colourful, charming, weird, funny, relaxing, and occasionally surprising. Absolutely NOT a horror game. No jumpscares, disturbing imagery, stressful timers, or punishing difficulty.
+
+The player explores a seemingly ordinary house where reality behaves in ridiculous ways. Furniture has strange personalities, everyday objects do impossible things, and the environment changes in response to the player's actions.
+
+The experience should feel like a small, premium indie game with its own identity, not a generic asset-store project.
+
+## 2. TECHNICAL REQUIREMENTS
+
+- Use **JavaScript or TypeScript, Three.js, and Vite** for the 3D game.
+- Do NOT use Unity, Unreal Engine, or another full game engine.
+- Do not require a paid engine, paid API, or subscription.
+- Make it playable in a modern desktop browser on Windows.
+- Target smooth performance on a laptop with 16 GB RAM, including ARM64 Windows hardware.
+- Use WebGL-compatible rendering and avoid unnecessarily demanding effects.
+- Organise the code into sensible, maintainable modules.
+- Provide a working `package.json`, setup instructions, and a clear launch command.
+- Use local assets and dependencies wherever practical. The core game must not depend on an online service being available.
+- Do not leave essential gameplay as pseudocode, placeholders, or TODO comments.
+- If a dependency or external asset is unavailable, implement a sensible alternative rather than abandoning the feature.
+
+## 3. VISUAL ART DIRECTION
+
+This is one of the most important requirements.
+
+Create a **distinctive, stylised 3D art direction** with the visual appeal of a carefully crafted premium indie game.
+
+The world should feature:
+- Gorgeous, harmonious colours with confident colour contrast.
+- Warm sunlight, soft shadows, ambient lighting, and carefully composed scenes.
+- Rounded furniture, appealing proportions, smooth silhouettes, and playful shapes.
+- Materials with believable roughness, subtle highlights, and varied surfaces.
+- Beautiful room composition, decorative details, plants, rugs, shelves, lamps, paintings, cushions, and small environmental storytelling moments.
+- Smooth object animations, satisfying movement, subtle camera effects, and polished transitions.
+- A consistent visual identity across the environment, menus, UI, and interactions.
+
+Avoid the appearance of a basic programming tutorial. Do not create an empty room filled with default grey cubes. Build custom geometry and procedural models where appropriate.
+
+Use genuine, legally usable assets if they materially improve the result, but the game must remain functional without downloading external models. Never pretend a placeholder asset is a finished model.
+
+## 4. FIRST PLAYABLE LEVEL: THE UPSIDE-DOWN LIVING ROOM
+
+Build one complete, polished level before attempting a huge game.
+
+The player starts in a beautiful, slightly unusual living room. There is a sofa, coffee table, television, shelves, a strange remote control, a locked exit door, and a suspicious wall switch.
+
+### Gameplay sequence
+
+1. The player can explore the room naturally using first-person controls.
+2. They discover a peculiar remote control.
+3. Looking at an interactive object displays a clean, subtle interaction prompt.
+4. The player picks up or activates the remote.
+5. Pressing the remote causes the room to undergo a spectacular but playful transformation: furniture flips upside down, objects float or rotate, lighting changes, and the room becomes a new puzzle space.
+6. The player discovers that the changed furniture creates a route to a hidden switch.
+7. Activating the switch reveals how to unlock the exit.
+8. The player opens the door and receives a funny, unexpected payoff.
+9. A polished level-complete screen appears, with an option to replay.
+
+Make this sequence genuinely playable from beginning to end. The player must be able to complete the puzzle without developer tools or manually editing game state.
+
+The puzzle should be intuitive and forgiving. Use environmental clues and optional hints rather than demanding pixel-perfect positioning.
+
+## 5. MOVEMENT AND INTERACTION
+
+Implement:
+- First-person mouse look with pointer lock.
+- WASD movement.
+- Sensible mouse sensitivity and movement acceleration.
+- Collision detection so the player cannot walk through walls or furniture.
+- Stable movement that does not jitter or fall through the floor.
+- An interaction system with clear visual feedback.
+- Pick-up, activation, and object inspection where appropriate.
+- A pause menu with resume and restart options.
+- A settings menu with mouse sensitivity and audio volume.
+- A clear way to exit pointer lock and return to the menu.
+
+Controls should feel responsive and natural. Add subtle movement and interaction animations rather than teleporting everything abruptly.
+
+## 6. MAKE THE ROOM FEEL ALIVE
+
+The environment should be entertaining even when the player is not solving the puzzle.
+
+Add carefully chosen details such as:
+- A television that reacts strangely.
+- A painting whose contents subtly change.
+- A lamp that behaves suspiciously.
+- A sofa that reacts when interacted with.
+- Objects that wobble, bounce, float, or rotate when appropriate.
+- Comedic sound effects and satisfying interaction sounds.
+- Small hidden jokes that reward curiosity.
+
+These interactions should be polished and intentional, not random visual noise. Make the room feel charming and memorable.
+
+## 7. SOUND DESIGN
+
+Implement a proper audio system:
+- Ambient room tone or gentle background music.
+- Soft footsteps.
+- Distinct interaction sounds.
+- A satisfying sound for the room transformation.
+- Subtle audio feedback for puzzle progress and completion.
+
+Respect browser audio restrictions by starting audio only after an appropriate user interaction. Include a volume control. If audio assets are unavailable, create simple sound effects procedurally or use suitable legal assets.
+
+## 8. PROFESSIONAL UI AND PRESENTATION
+
+Create a cohesive, attractive interface that matches the game's art direction.
+
+Include:
+- A proper title screen with the game logo/title.
+- A Play button.
+- A Settings menu.
+- A short, unobtrusive tutorial.
+- Minimal interaction prompts.
+- A pause menu.
+- A level-completion screen.
+- Smooth menu transitions and button feedback.
+
+Do not clutter the screen with permanent instructions or oversized HUD elements. The game world should remain the focus.
+
+## 9. CODE QUALITY AND RELIABILITY
+
+The project must:
+- Start without missing imports or unresolved modules.
+- Have no game-breaking console errors.
+- Handle window resizing correctly.
+- Clean up event listeners and animation loops appropriately.
+- Keep gameplay logic separate from rendering where practical.
+- Use sensible asset loading and fallback handling.
+- Avoid unnecessary dependencies.
+- Include a README explaining setup, controls, architecture, and known limitations.
+
+Test the actual gameplay flow. Verify that movement, collision, interaction, the room transformation, the hidden switch, the exit, and the completion screen all work.
+
+Do not claim that something has been tested unless it actually has been tested.
+
+## 10. DEVELOPMENT WORKFLOW
+
+Work incrementally, but deliver a working game rather than stopping at a proposal.
+
+**Phase 1:** Set up the project and build the 3D room, camera, movement, lighting, and collision.
+
+**Phase 2:** Add the remote control and the complete room-transformation mechanic.
+
+**Phase 3:** Implement the puzzle, switch, door, and level-completion sequence.
+
+**Phase 4:** Add menus, sound, environmental interactions, animation polish, and visual refinement.
+
+**Phase 5:** Run the game, identify and fix bugs, and verify the full playable sequence.
+
+Prioritise a complete, beautiful vertical slice over many unfinished levels.
+
+If you have access to my development environment, inspect the existing environment first and create the project in a **new dedicated folder**. Do not overwrite unrelated files or existing projects. If you cannot directly create files, provide the complete project files in a practical form rather than merely describing what I should write.
+
+If you hit a technical limitation, explain it briefly and implement the best workable alternative.
+
+## 11. FINAL QUALITY STANDARD
+
+I want a game that makes someone think:
+
+"Wait, this is a browser game made without Unity or Unreal? This actually looks and feels like a real indie game."
+
+Aim for:
+- A memorable art direction.
+- Responsive controls.
+- Satisfying interactions.
+- Funny surprises.
+- A complete, solvable level.
+- A professional presentation.
+- Clean, reliable code.
+
+Be ambitious with the creativity, but honest about the limitations. Do not sacrifice actual playability for screenshots or visual effects.
+
+**Start building the project now. Do not respond with only a plan. Deliver the actual playable game, then explain how to run it and what has genuinely been completed.**

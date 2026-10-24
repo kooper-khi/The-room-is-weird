@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "The Room Is Weird"
+description = "A playful surreal 3D exploration game set in a living room where a peculiar remote flips reality, revealing a lighthearted environmental puzzle. Explore, interact, uncover the hidden switch, and find the room's unexpected exit."
+version = "1.0.0"
+id = "artifacts/the-room-is-weird"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25036
+
+[services.development]
+run = "pnpm --filter @workspace/the-room-is-weird run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/the-room-is-weird", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/the-room-is-weird/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25036"
+BASE_PATH = "/"
