@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
-type Props = { onBack: () => void };
+type Props = { onBack: () => void; onNext?: () => void; devMode?: boolean; onChapterSelect?: (chapter: 1 | 2 | 3) => void };
 
-export default function SchoolChapter({ onBack }: Props) {
+export default function SchoolChapter({ onBack, onNext, devMode = false, onChapterSelect }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [screen, setScreen] = useState<'title' | 'playing' | 'complete' | 'dead'>('title');
   const [objective, setObjective] = useState('Find the staff keycard');
@@ -726,6 +726,8 @@ export default function SchoolChapter({ onBack }: Props) {
               <p>{screen === 'complete' ? 'Outside, the sky is dark. The bell rings again from somewhere behind you.' : screen === 'dead' ? 'The creature caught you in the corridor. The school resets, and the keycard will be somewhere different next run.' : 'Search the lockers. Find the maintenance clue, solve the wire puzzle, then reach the EXIT before the thing catches you.'}</p>
               <div className="dialog-buttons">
                 <button className="primary-button" onClick={begin}>{screen === 'complete' ? 'Play again' : screen === 'dead' ? 'Try again' : 'Enter the school'}</button>
+                {screen === 'complete' && onNext && <button className="secondary-button" onClick={onNext}>Next chapter: The Underground →</button>}
+                {devMode && onChapterSelect && <><button className="secondary-button" onClick={() => onChapterSelect(1)}>DEV: Chapter 01 — Living Room</button><button className="secondary-button" onClick={() => onChapterSelect(3)}>DEV: Chapter 03 — Underground</button></>}
                 <button className="secondary-button" onClick={onBack}>Back to Chapter 01</button>
               </div>
               <div className="title-controls"><span><kbd>WASD</kbd> move</span><span><kbd>SHIFT</kbd> sprint</span><span><kbd>E</kbd> interact</span></div>

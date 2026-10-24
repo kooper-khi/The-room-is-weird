@@ -23,6 +23,7 @@ import {
 } from './game/puzzle';
 import { RoomAudio } from './game/audio';
 import SchoolChapter from './game/SchoolChapter';
+import TunnelChapter from './game/TunnelChapter';
 
 export type GameFrontendCallbacks = {
   onStart?: () => void;
@@ -60,10 +61,13 @@ function targetForButton(target: InteractionTarget) {
 }
 
 function App({ callbacks = {} }: Props) {
-  const [chapter, setChapter] = useState<'living-room' | 'school'>('living-room');
+  const [chapter, setChapter] = useState<'living-room' | 'school' | 'underground'>('living-room');
   const [puzzle, setPuzzle] = useState<PuzzleState>(() => createPuzzleState());
   const [screen, setScreen] = useState<'title' | 'playing' | 'paused' | 'settings' | 'complete'>('title');
   const [previousScreen, setPreviousScreen] = useState<'title' | 'playing' | 'paused' | 'complete'>('title');
+  const [chapterSelectUnlocked, setChapterSelectUnlocked] = useState(false);
+  const [devCode, setDevCode] = useState('');
+  const [devCodeMessage, setDevCodeMessage] = useState('');
   const [sensitivity, setSensitivity] = useState(1);
   const [volume, setVolume] = useState(.62);
   const [hovered, setHovered] = useState<InteractionTarget | null>(null);
@@ -161,7 +165,8 @@ function App({ callbacks = {} }: Props) {
     audioRef.current?.dispose();
   }, []);
 
-  if (chapter === 'school') return <SchoolChapter onBack={() => setChapter('living-room')} />;
+  if (chapter === 'school') return <SchoolChapter onBack={() => setChapter('living-room')} onNext={() => setChapter('underground')} devMode={chapterSelectUnlocked} onChapterSelect={(next) => setChapter(next === 1 ? 'living-room' : next === 2 ? 'school' : 'underground')} />;
+  if (chapter === 'underground') return <TunnelChapter onBack={() => setChapter('school')} devMode={chapterSelectUnlocked} onChapterSelect={(next) => setChapter(next === 1 ? 'living-room' : next === 2 ? 'school' : 'underground')} />;
 
   const objective = getObjective(puzzle);
   const progress = [puzzle.hasRemote, puzzle.roomFlipped, puzzle.switchActivated, puzzle.complete];
@@ -247,6 +252,20 @@ function App({ callbacks = {} }: Props) {
                   <p>Fine-tune the room. It will pretend not to notice.</p>
                   <label className="settings-row"><span>Look speed</span><input type="range" min=".4" max="2" step=".1" value={sensitivity} onChange={(event) => changeSensitivity(Number(event.target.value))} data-testid="input-sensitivity" /><span className="settings-value">{sensitivity.toFixed(1)}Ã—</span></label>
                   <label className="settings-row"><span>Sound level</span><input type="range" min="0" max="1" step=".01" value={volume} onChange={(event) => changeVolume(Number(event.target.value))} data-testid="input-volume" /><span className="settings-value">{Math.round(volume * 100)}%</span></label>
+                  <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,.12)' }}>
+                    <div className="dialog-kicker">Developer access</div>
+                    <p style={{ marginBottom: 10 }}>Enter a code to unlock level selection for testing.</p>
+                    <form onSubmit={(event) => { event.preventDefault(); if (devCode.trim() === '1234') { setChapterSelectUnlocked(true); setDevCodeMessage('Level select unlocked. Choose any chapter below.'); setDevCode(''); } else { setDevCodeMessage('Incorrect code. Try again.'); } }} style={{ display: 'flex', gap: 8 }}>
+                      <input aria-label="Developer code" value={devCode} onChange={(event) => setDevCode(event.target.value)} inputMode="numeric" autoComplete="off" placeholder="Enter code" style={{ minWidth: 0, flex: 1, padding: '11px 12px', color: 'inherit', background: 'rgba(0,0,0,.28)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 8 }} />
+                      <button type="submit" className="primary-button">Enter</button>
+                    </form>
+                    {devCodeMessage && <p role="status" style={{ marginTop: 10, marginBottom: 0 }}>{devCodeMessage}</p>}
+                    {chapterSelectUnlocked && <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+                      <button type="button" className="secondary-button" onClick={() => { setChapter('living-room'); setScreen('title'); setPreviousScreen('title'); }}>Chapter 01 — The Living Room</button>
+                      <button type="button" className="secondary-button" onClick={() => setChapter('school')}>Chapter 02 — The School</button>
+                      <button type="button" className="secondary-button" onClick={() => setChapter('underground')}>Chapter 03 — The Underground</button>
+                    </div>}
+                  </div>
                   <div className="dialog-buttons"><button type="button" className="primary-button" data-testid="button-settings-done" onClick={() => setScreen(previousScreen)}><Check size={15} /> All set</button></div>
                 </div>
               ) : screen === 'title' ? (
