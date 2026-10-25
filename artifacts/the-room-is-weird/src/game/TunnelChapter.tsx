@@ -355,20 +355,21 @@ export default function TunnelChapter({ onBack, devMode = false, onChapterSelect
         if(cutTimer>=3.5&&watcher.visible){watcher.visible=false;watcherLight.intensity=0;setMessage('The Watcher screams and burns away. The train finally begins to move.');}
         // Only after the Watcher is gone does the train accelerate into the tunnel.
         if(cutTimer>=3.5&&cutTimer<6.1){train.position.z-=dt*13;camera.position.x+=(2.45-camera.position.x)*Math.min(1,dt*2);camera.position.y+=(2.35-camera.position.y)*Math.min(1,dt*2);camera.position.z+=(train.position.z+.1-camera.position.z)*Math.min(1,dt*2);camera.lookAt(2.3,2.1,train.position.z-5);}
-        // Pull out of the carriage into a wide final shot of the train disappearing into darkness.
-        if(cutTimer>=6.1){
-          // The train bursts out of the tunnel into a vast crimson sunset valley.
+        // Pull away from the carriage and reveal the whole valley before the ending card appears.
+        if(cutTimer>=5.0){
           finale.visible=true;
-          const reveal=Math.min(1,(cutTimer-6.1)/2.8);
-          train.position.z=Math.max(-116,train.position.z-dt*(cutTimer<8.9?17:5));
-          camera.position.x+=(Math.sin(cutTimer*.22)*1.4-camera.position.x)*Math.min(1,dt*1.1);
-          camera.position.y+=(THREE.MathUtils.lerp(7.5,19,reveal)-camera.position.y)*Math.min(1,dt*.8);
-          camera.position.z+=(-88-camera.position.z)*Math.min(1,dt*(cutTimer<8.9?1.25:.65));
-          camera.lookAt(-9,12,-171);
+          const reveal=Math.min(1,(cutTimer-5.0)/3.2);
+          // Keep the train moving into the open while the camera cranes up and pulls back.
+          train.position.z=Math.max(-116,train.position.z-dt*(cutTimer<8.2?19:2.5));
+          camera.position.x+=(-1.5+Math.sin(cutTimer*.2)*1.2-camera.position.x)*Math.min(1,dt*.85);
+          camera.position.y+=(THREE.MathUtils.lerp(5.5,22,reveal)-camera.position.y)*Math.min(1,dt*.75);
+          camera.position.z+=(-78-camera.position.z)*Math.min(1,dt*(cutTimer<8.2?1.05:.55));
+          camera.lookAt(-2,9,-151);
           scene.background.set('#641d46');
-          if(cutTimer>8.9){train.position.z=-116;camera.lookAt(-12,17,-174);}
+          if(cutTimer>8.2){train.position.z=-116;camera.lookAt(-2,13,-151);}
         }
-        if(cutTimer>14.2){state.current.active=false;state.current.escape=true;setScreen('complete');setObjective('MISSION COMPLETED');setMessage('The train crosses the bridge beneath a burning crimson sky. Beyond the water, the mountains go on forever. You escaped.');}
+        // Hold the landscape on screen long enough to actually take it in.
+        if(cutTimer>17.5){state.current.active=false;state.current.escape=true;setScreen('complete');setObjective('MISSION COMPLETED');setMessage('The train crosses the bridge beneath a burning crimson sky. Beyond the water, the mountains go on forever. You escaped.');}
       }
       else {
         // Movement follows the direction the camera faces. W always moves forward relative to view,
