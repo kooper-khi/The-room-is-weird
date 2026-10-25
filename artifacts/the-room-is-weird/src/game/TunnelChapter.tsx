@@ -286,6 +286,12 @@ export default function TunnelChapter({ onBack, devMode = false, onChapterSelect
     }
     // Outdoor crimson-sunset finale environment is staged in a hidden group and revealed by the escape cutscene.
     const finale = new THREE.Group(); finale.visible = false; scene.add(finale);
+    // Use a real photographic landscape as the distant world, with the bridge and train remaining 3D in front.
+    const landscapeTexture = new THREE.TextureLoader().load('/mountain-sunset.jpg');
+    landscapeTexture.colorSpace = THREE.SRGBColorSpace;
+    const landscape = new THREE.Mesh(new THREE.PlaneGeometry(360, 190), new THREE.MeshBasicMaterial({map: landscapeTexture, color: '#e8b0aa'}));
+    landscape.position.set(-2, 35, -232);
+    finale.add(landscape);
     const fmat=(color:string,roughness=.9,metalness=0,emissive='#000000')=>new THREE.MeshStandardMaterial({color,roughness,metalness,emissive,emissiveIntensity:.8});
     const fbox=(x:number,y:number,z:number,sx:number,sy:number,sz:number,color:string)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),fmat(color));m.position.set(x,y,z);m.receiveShadow=true;finale.add(m);return m;};
     const fmesh=(geo:THREE.BufferGeometry,mat:THREE.Material,x:number,y:number,z:number)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.receiveShadow=true;finale.add(m);return m;};
