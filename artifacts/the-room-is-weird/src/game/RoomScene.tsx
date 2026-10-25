@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import type { InteractionTarget, PuzzleState } from './puzzle';
+import { playFeedback } from './feedback';
 
 type Props = {
   puzzle: PuzzleState;
@@ -230,6 +231,10 @@ export default function RoomScene({ puzzle, active, onAction, sensitivity, onLoo
     let previous = performance.now();
     let animationFrame = 0;
     let footstepClock = 0;
+    let jumpHeight = 0;
+    let jumpVelocity = 0;
+    let wasGrounded = true;
+    let impactShake = 0;
     const velocity = new THREE.Vector3();
     const direction = new THREE.Vector3();
     const colliders = [
@@ -336,7 +341,8 @@ export default function RoomScene({ puzzle, active, onAction, sensitivity, onLoo
     const onKeyDown = (event: KeyboardEvent) => {
       if (!activeRef.current) return;
       const key = event.key.toLowerCase();
-      if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+      if (key === ' ' && activeRef.current && jumpHeight <= 0.001) { jumpVelocity = 5.2; impactShake = Math.max(impactShake, .025); playFeedback('jump'); event.preventDefault(); }
+      if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(key)) {
         pressed.add(key);
         event.preventDefault();
       }
@@ -378,7 +384,7 @@ export default function RoomScene({ puzzle, active, onAction, sensitivity, onLoo
       const side = Number(pressed.has('d') || pressed.has('arrowright') || pressed.has('mobile-right')) - Number(pressed.has('a') || pressed.has('arrowleft') || pressed.has('mobile-left'));
       if (activeRef.current && (fwd || side)) {
         direction.set(side, 0, -fwd).normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-        velocity.lerp(direction.multiplyScalar(3.1), 1 - Math.exp(-12 * dt));
+        velocity.lerp(direction.multiplyScalar(pressed.has('shift') ? 5.0 : 3.1), 1 - Math.exp(-12 * dt));
         const nextX = THREE.MathUtils.clamp(camera.position.x + velocity.x * dt, -5.7, 5.7);
         const nextZ = THREE.MathUtils.clamp(camera.position.z + velocity.z * dt, -7.6, 5.6);
         if (canStandAt(nextX, camera.position.z)) camera.position.x = nextX;
@@ -393,7 +399,10 @@ export default function RoomScene({ puzzle, active, onAction, sensitivity, onLoo
       } else {
         velocity.multiplyScalar(Math.exp(-10 * dt));
       }
-      camera.position.y = 1.68 + ((fwd || side) && activeRef.current ? Math.sin(now * .009) * .025 : 0);
+      const groundedBefore = jumpHeight <= 0;
+      if (activeRef.current) { jumpVelocity -= 13.5 * dt; jumpHeight = Math.max(0, jumpHeight + jumpVelocity * dt); if (jumpHeight === 0) { if (!groundedBefore && wasGrounded === false) { impactShake = .075; playFeedback('land'); } jumpVelocity = 0; wasGrounded = true; } else wasGrounded = false; }
+      impactShake *= Math.exp(-12 * dt);
+      camera.position.y = 1.68 + jumpHeight + ((fwd || side) && activeRef.current ? Math.sin(now * .009) * .025 : 0) + (impactShake ? Math.sin(now * .08) * impactShake : 0);
       if (doorPivot.userData.opening) doorPivot.rotation.y = THREE.MathUtils.lerp(doorPivot.rotation.y, -1.25, .045);
       const portrait = scene.getObjectByName('painting portrait shoulders');
       if (portrait) portrait.rotation.z = Math.sin(now * .0007) * .025;

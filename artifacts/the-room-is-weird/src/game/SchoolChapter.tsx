@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { playFeedback } from './feedback';
 
 type Props = { onBack: () => void; onNext?: () => void; devMode?: boolean; onChapterSelect?: (chapter: 1 | 2 | 3) => void };
 
@@ -374,6 +375,7 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2(0, 0);
     const keys = new Set<string>();
+    let jumpHeight = 0, jumpVelocity = 0, impactShake = 0, wasAirborne = false;
     let yaw = 0;
     let pitch = 0;
     let lastTime = 0;
@@ -444,7 +446,8 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
     };
     const onKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      if (['w','a','s','d','shift','e','arrowup','arrowdown','arrowleft','arrowright'].includes(key)) keys.add(key);
+      if (['w','a','s','d','shift','e','arrowup','arrowdown','arrowleft','arrowright',' '].includes(key)) keys.add(key);
+      if (key === ' ' && stateRef.current.active && !cutsceneActive && jumpHeight <= 0.001) { jumpVelocity = 5.2; playFeedback('jump'); e.preventDefault(); }
       if (key !== 'e' || !stateRef.current.active) return;
       // Reliable interaction: use the thing the camera is aimed at when possible, then fall back
       // to the nearest reachable target. This avoids tiny locker handles making the keycard impossible to find.
@@ -483,7 +486,7 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
         else setMessage('Just old coats and a locker mirror cracked down the middle.');
       } else if (target === 'keycard') {
         if (s.hasCard) { setMessage('You already have the staff keycard.'); return; }
-        s.hasCard = true; setHasCard(true);
+        s.hasCard = true; setHasCard(true); playFeedback('collect');
         const card = scene.getObjectByName('staff keycard'); if (card) card.visible = false;
         const glowAfterPickup = scene.getObjectByName('keycard glow'); if (glowAfterPickup) glowAfterPickup.visible = false;
         setObjective('Find a way to restore the corridor lights');
@@ -569,12 +572,17 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
         setInteractionPrompt(old => old === promptText ? old : promptText);
         const f = Number(keys.has('w') || keys.has('arrowup')) - Number(keys.has('s') || keys.has('arrowdown'));
         const side = Number(keys.has('d') || keys.has('arrowright')) - Number(keys.has('a') || keys.has('arrowleft'));
-        const fast = keys.has('shift') ? 1.55 : 1;
+        const fast = keys.has('shift') ? 1.85 : 1;
         const move = new THREE.Vector3(side, 0, -f).normalize().applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
         const nx = THREE.MathUtils.clamp(camera.position.x + move.x * dt * 3.2 * fast, -3.25, 3.25);
         const nz = THREE.MathUtils.clamp(camera.position.z + move.z * dt * 3.2 * fast, -25.2, 13.8);
         camera.position.x = nx;
         camera.position.z = nz;
+        const wasGrounded = jumpHeight <= 0;
+        jumpVelocity -= 13.5 * dt; jumpHeight = Math.max(0, jumpHeight + jumpVelocity * dt);
+        if (jumpHeight === 0) { if (wasAirborne) { impactShake = .07; playFeedback('land'); } jumpVelocity = 0; wasAirborne = false; } else wasAirborne = true;
+        impactShake *= Math.exp(-12 * dt);
+        camera.position.y = 1.65 + jumpHeight + (impactShake ? Math.sin(time * .08) * impactShake : 0);
 
         if (s.hasCard && !s.escaped) {
           const target = new THREE.Vector3(camera.position.x, 0, camera.position.z);
