@@ -284,6 +284,21 @@ export default function TunnelChapter({ onBack, devMode = false, onChapterSelect
       const headlamp=new THREE.PointLight('#c5f2ff',0,26,1.4);headlamp.position.set(0,2.1,6.4);train.add(headlamp);train.userData.headlamp=headlamp;
       const doorGlow=new THREE.PointLight('#54dfff',0,8);doorGlow.position.set(0,2.3,6.5);train.add(doorGlow);train.userData.doorGlow=doorGlow;
     }
+    // Outdoor crimson-sunset finale environment is staged in a hidden group and revealed by the escape cutscene.
+    const finale = new THREE.Group(); finale.visible = false; scene.add(finale);
+    const fmat=(color:string,roughness=.9,metalness=0,emissive='#000000')=>new THREE.MeshStandardMaterial({color,roughness,metalness,emissive,emissiveIntensity:.8});
+    const fbox=(x:number,y:number,z:number,sx:number,sy:number,sz:number,color:string)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),fmat(color));m.position.set(x,y,z);m.receiveShadow=true;finale.add(m);return m;};
+    const fmesh=(geo:THREE.BufferGeometry,mat:THREE.Material,x:number,y:number,z:number)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.receiveShadow=true;finale.add(m);return m;};
+    const sky=new THREE.Mesh(new THREE.SphereGeometry(240,32,20),new THREE.MeshBasicMaterial({color:'#641d46',side:THREE.BackSide}));sky.position.set(0,0,-160);finale.add(sky);
+    const sun=new THREE.Mesh(new THREE.SphereGeometry(13,32,24),new THREE.MeshBasicMaterial({color:'#ff744f'}));sun.position.set(-48,39,-210);finale.add(sun);
+    const sunGlow=new THREE.PointLight('#ff684b',3,240,1.1);sunGlow.position.copy(sun.position);finale.add(sunGlow);
+    const water=fmesh(new THREE.PlaneGeometry(360,300,48,40),fmat('#263f59',.22,.42,'#10283e'),0,-5,-190);water.rotation.x=-Math.PI/2;
+    for(let layer=0;layer<3;layer++)for(let i=0;i<13;i++){const x=(i-6)*24+(layer%2?9:0),z=-145-layer*25,h=25+((i*17+layer*13)%35),w=18+((i*7)%12);fmesh(new THREE.ConeGeometry(w,h,5,1),fmat(layer===0?'#29283e':layer===1?'#34273d':'#453044'),x,h/2-1,z);fmesh(new THREE.ConeGeometry(w*.48,h*.56,5,1),fmat(layer===0?'#784052':'#63394c'),x-w*.12,h*.29,z+1.5);}
+    fbox(0,5,-126,102,1.15,5.5,'#292c3a');
+    for(const x of [-39,39]){fbox(x,18,-126,2.3,27,2.8,'#4b3548');fbox(x,31,-126,3.4,1.2,4.2,'#9b4b5a');for(let y=7;y<31;y+=3)fbox(x,y,-126,3.5,.24,3.6,'#8a4655');}
+    for(let i=0;i<30;i++){const x=-49+i*3.35;fbox(x,9,-126,.16,8+Math.sin(i*.4)*2,.16,'#b36a70');}
+    fbox(0,6.2,-112,3.1,.24,44,'#4c4549');for(const x of [-1.05,1.05])fbox(x,6.42,-112,.12,.12,45,'#d2a9a0');for(let z=-91;z>-135;z-=1.8)fbox(0,6.31,z,2.9,.12,.38,'#55404a');
+    const dustGeo=new THREE.BufferGeometry(),dustPoints:number[]=[];for(let i=0;i<500;i++)dustPoints.push((Math.random()-.5)*150,Math.random()*42-2,-105-Math.random()*125);dustGeo.setAttribute('position',new THREE.Float32BufferAttribute(dustPoints,3));finale.add(new THREE.Points(dustGeo,new THREE.PointsMaterial({color:'#ffad91',size:.55,transparent:true,opacity:.68})));
     const lights:THREE.PointLight[]=[];
     for(const z of [12,2,-8,-18,-28,-38,-48,-58,-68]){
       const l=new THREE.PointLight('#e7f2f7',.48,12,1.55);l.position.set(0,3.72,z);scene.add(l);lights.push(l);
@@ -306,7 +321,7 @@ export default function TunnelChapter({ onBack, devMode = false, onChapterSelect
       else if(hit.object.name==='control cabinet'){if(state.current.tickets.length===3)setPanel(true);else setMessage('Three ticket fragments are required to open the maintenance panel.');}
       else if(hit.object.name==='platform gate'){if(state.current.power)escapeRef.current?.();else setMessage('The gate lock has no power.');}
     }
-    function reset(){jumpHeight=0;jumpVelocity=0;impactShake=0;wasAirborne=false;state.current={active:false,power:false,tickets:[],dead:false,escape:false};fragments.forEach(fragment=>{fragment.visible=true;});camera.position.set(0,1.68,16);yaw=0;pitch=0;elapsed=0;flash=0;blackout=0;trainArriving=false;boarding=false;doorOpen=0;cutscene=false;cutTimer=0;dead=false;train.visible=false;const doors=train.userData.doors as THREE.Mesh[];if(doors?.length===2){doors[0].position.z=-.52;doors[1].position.z=.52;}watcher.visible=true;watcher.position.set(2.3,0,-55);watcher.scale.setScalar(1);watcherLight.intensity=.8;watcher.traverse(o=>{if(o instanceof THREE.Mesh&&o.material instanceof THREE.MeshStandardMaterial){o.material.color.set('#090c11');o.material.emissive.set('#000000');o.material.emissiveIntensity=.7;}});lights.forEach(l=>l.intensity=.48);setTickets([]);setPower(false);setCode([]);setPanel(false);setFear(0);setObjective('Find the three ticket fragments');setMessage('The station closed seventeen years ago. So why is the departure board updating?');}
+    function reset(){jumpHeight=0;jumpVelocity=0;impactShake=0;wasAirborne=false;state.current={active:false,power:false,tickets:[],dead:false,escape:false};fragments.forEach(fragment=>{fragment.visible=true;});camera.position.set(0,1.68,16);yaw=0;pitch=0;elapsed=0;flash=0;blackout=0;trainArriving=false;boarding=false;doorOpen=0;cutscene=false;cutTimer=0;dead=false;train.visible=false;finale.visible=false;scene.background.set('#03070d');const doors=train.userData.doors as THREE.Mesh[];if(doors?.length===2){doors[0].position.z=-.52;doors[1].position.z=.52;}watcher.visible=true;watcher.position.set(2.3,0,-55);watcher.scale.setScalar(1);watcherLight.intensity=.8;watcher.traverse(o=>{if(o instanceof THREE.Mesh&&o.material instanceof THREE.MeshStandardMaterial){o.material.color.set('#090c11');o.material.emissive.set('#000000');o.material.emissiveIntensity=.7;}});lights.forEach(l=>l.intensity=.48);setTickets([]);setPower(false);setCode([]);setPanel(false);setFear(0);setObjective('Find the three ticket fragments');setMessage('The station closed seventeen years ago. So why is the departure board updating?');}
     resetRef.current=reset;
     powerRef.current=()=>{if(state.current.power)return;state.current.power=true;setPower(true);setPanel(false);watcher.position.set(2.3,0,-18);setObjective('Reach the train before the Watcher');setMessage('POWER RESTORED. Something heavy is moving in the tunnel.');train.visible=true;train.position.set(0,0,-76);trainArriving=true;train.userData.headlamp.intensity=8;train.userData.doorGlow.intensity=2;lights.forEach(l=>l.intensity=.82);};
     escapeRef.current=()=>{if(!state.current.power||boarding)return;boarding=true;setObjective('Board the train');setMessage('The doors are opening! Get to the train.');};
@@ -341,8 +356,19 @@ export default function TunnelChapter({ onBack, devMode = false, onChapterSelect
         // Only after the Watcher is gone does the train accelerate into the tunnel.
         if(cutTimer>=3.5&&cutTimer<6.1){train.position.z-=dt*13;camera.position.x+=(2.45-camera.position.x)*Math.min(1,dt*2);camera.position.y+=(2.35-camera.position.y)*Math.min(1,dt*2);camera.position.z+=(train.position.z+.1-camera.position.z)*Math.min(1,dt*2);camera.lookAt(2.3,2.1,train.position.z-5);}
         // Pull out of the carriage into a wide final shot of the train disappearing into darkness.
-        if(cutTimer>=6.1){const t=Math.min(1,(cutTimer-6.1)/1.8);const target=new THREE.Vector3(0,7.5,train.position.z+15);camera.position.lerp(target,Math.min(1,dt*1.4));camera.lookAt(0,1.4,train.position.z-5);train.position.z-=dt*8;}
-        if(cutTimer>8.6){state.current.active=false;state.current.escape=true;setScreen('complete');setObjective('MISSION COMPLETED');setMessage('ESCAPED â€” MISSION COMPLETED. The Watcher is dead. You are the first to escape.');}
+        if(cutTimer>=6.1){
+          // The train bursts out of the tunnel into a vast crimson sunset valley.
+          finale.visible=true;
+          const reveal=Math.min(1,(cutTimer-6.1)/2.8);
+          train.position.z=Math.max(-116,train.position.z-dt*(cutTimer<8.9?17:5));
+          camera.position.x+=(Math.sin(cutTimer*.22)*1.4-camera.position.x)*Math.min(1,dt*1.1);
+          camera.position.y+=(THREE.MathUtils.lerp(7.5,19,reveal)-camera.position.y)*Math.min(1,dt*.8);
+          camera.position.z+=(-88-camera.position.z)*Math.min(1,dt*(cutTimer<8.9?1.25:.65));
+          camera.lookAt(-9,12,-171);
+          scene.background.set('#641d46');
+          if(cutTimer>8.9){train.position.z=-116;camera.lookAt(-12,17,-174);}
+        }
+        if(cutTimer>14.2){state.current.active=false;state.current.escape=true;setScreen('complete');setObjective('MISSION COMPLETED');setMessage('The train crosses the bridge beneath a burning crimson sky. Beyond the water, the mountains go on forever. You escaped.');}
       }
       else {
         // Movement follows the direction the camera faces. W always moves forward relative to view,
