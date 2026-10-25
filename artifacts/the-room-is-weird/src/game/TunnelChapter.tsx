@@ -13,6 +13,7 @@ export default function TunnelChapter({ onBack, devMode = false, onChapterSelect
   const [panel, setPanel] = useState(false);
   const [code, setCode] = useState<string[]>([]);
   const [fear, setFear] = useState(0);
+  const [interactionPrompt, setInteractionPrompt] = useState('');
   const state = useRef({active:false,power:false,tickets:[] as string[],dead:false,escape:false});
   const sceneRef = useRef<THREE.Scene|null>(null);
   const resetRef = useRef<(()=>void)|null>(null);
@@ -220,18 +221,18 @@ export default function TunnelChapter({ onBack, devMode = false, onChapterSelect
     // Hidden ticket fragments are placed inside believable hiding spots; none floats in open space.
     const fragments:THREE.Mesh[]=[];
     const addTicket=(x:number,y:number,z:number,id:string,spot:string)=>{
-      const m=new THREE.Mesh(new THREE.BoxGeometry(.28,.018,.17),mat('#d8c99d',.95));m.position.set(x,y,z);m.rotation.y=.25;m.name='ticket-'+id;m.userData.action='ticket';m.userData.id=id;m.userData.spot=spot;scene.add(m);fragments.push(m);
-      // No glow: the player must inspect the environment and aim/interact to find it.
+      const m=new THREE.Mesh(new THREE.BoxGeometry(.28,.018,.17),mat('#d8c99d',.95));m.position.set(x,y,z);m.rotation.y=.25;m.name='ticket-'+id;m.userData.action='ticket';m.userData.id=id;m.userData.spot=spot;scene.add(m);fragments.push(m); const glow=new THREE.PointLight('#78f5cf',.48,2.8,2);glow.position.set(0,.12,0);m.add(glow); const halo=new THREE.Mesh(new THREE.RingGeometry(.16,.23,24),new THREE.MeshBasicMaterial({color:'#78f5cf',transparent:true,opacity:.55,side:THREE.DoubleSide}));halo.rotation.x=-Math.PI/2;halo.position.y=.025;m.add(halo);
+      // Subtle cyan-green glow makes fragments findable without removing the exploration.
     };
-    // A: under a bench seat; B: inside the open bin; C: tucked into a maintenance drawer.
-    addTicket(4.72,.55,-9,'A','under the bench');
+    // A: clearly visible on the bench; B: easy to spot on the bin rim; C: on the platform beside the damaged wall.
+    addTicket(4.72,.81,-9,'A','on the bench seat');
     // Realistic metal station bin with a hollow rim, reinforced sides and visible inner cavity.
     const bin=box('steel station litter bin',-4.65,.48,-18,.66,.9,.62,'#38434a');
     box('bin front reinforcing rib',-4.65,.48,-17.675,.48,.65,.035,'#59636a');
     box('bin top rim',-4.65,.94,-18,.72,.09,.68,'#778188');
     box('bin dark opening',-4.65,.99,-18,.48,.025,.43,'#080c10');
     box('bin side seam',-4.985,.48,-18,.025,.68,.5,'#1a242a');
-    addTicket(-4.65,.96,-18,'B','inside the bin');
+    addTicket(-4.65,1.28,-18,'B','on the bin rim');
     // Railway maintenance cabinet: layered steel housing, recessed controls, conduit and drawer.
     box('control cabinet',4.55,1.55,-44,1.85,2.85,.72,'#303b43');
     box('maintenance cabinet recessed face',4.55,1.58,-43.615,1.55,2.45,.055,'#151e25');
@@ -253,7 +254,7 @@ export default function TunnelChapter({ onBack, devMode = false, onChapterSelect
       for(let y=1.2;y<3.5;y+=.55) box('cabinet conduit clamp',x,y,-43.91,.16,.07,.07,'#8b8a7e');
     }
     box('cabinet warning plate',4.55,3.12,-43.51,.8,.2,.035,'#b99a4e');
-    addTicket(4.55,1.04,-43.31,'C','inside the maintenance drawer');
+    addTicket(4.55,1.7,-39,'C','on the platform beside the damaged wall');
     // Platform watcher: long-limbed silhouette, mask, glowing eyes; distinct from school creature.
     const watcher=new THREE.Group();watcher.position.set(2.3,0,-55);scene.add(watcher);
     const body=new THREE.Mesh(new THREE.CapsuleGeometry(.32,1.4,5,8),mat('#090c11',.98));body.position.y=1.45;watcher.add(body);
@@ -340,7 +341,7 @@ export default function TunnelChapter({ onBack, devMode = false, onChapterSelect
         if(cutTimer>=3.5&&cutTimer<6.1){train.position.z-=dt*13;camera.position.x+=(2.45-camera.position.x)*Math.min(1,dt*2);camera.position.y+=(2.35-camera.position.y)*Math.min(1,dt*2);camera.position.z+=(train.position.z+.1-camera.position.z)*Math.min(1,dt*2);camera.lookAt(2.3,2.1,train.position.z-5);}
         // Pull out of the carriage into a wide final shot of the train disappearing into darkness.
         if(cutTimer>=6.1){const t=Math.min(1,(cutTimer-6.1)/1.8);const target=new THREE.Vector3(0,7.5,train.position.z+15);camera.position.lerp(target,Math.min(1,dt*1.4));camera.lookAt(0,1.4,train.position.z-5);train.position.z-=dt*8;}
-        if(cutTimer>8.6){state.current.active=false;state.current.escape=true;setScreen('complete');setObjective('MISSION COMPLETED');setMessage('ESCAPED — MISSION COMPLETED. The Watcher is dead. You are the first to escape.');}
+        if(cutTimer>8.6){state.current.active=false;state.current.escape=true;setScreen('complete');setObjective('MISSION COMPLETED');setMessage('ESCAPED â€” MISSION COMPLETED. The Watcher is dead. You are the first to escape.');}
       }
       else {
         // Movement follows the direction the camera faces. W always moves forward relative to view,
@@ -357,6 +358,7 @@ export default function TunnelChapter({ onBack, devMode = false, onChapterSelect
       // Trigger the boarding cinematic near the train. Move train, camera and watcher together.
       if(boarding&&!cutscene&&doorOpen>=1&&train.position.z>=-24&&camera.position.z<-18&&camera.position.z>-30&&camera.position.x>1.2&&camera.position.x<4.5){finish();}
       if(!state.current.power&&elapsed>7&&Math.floor(elapsed*2)%13===0)setFear(1);
+      if(state.current.active&&!panel&&!cutscene){raycaster.setFromCamera(new THREE.Vector2(0,0),camera);const targetHit=raycaster.intersectObjects(scene.children,true).find(h=>h.distance<3.25&&(h.object.userData.action||h.object.name==='control cabinet'||h.object.name==='platform gate'));const o=targetHit?.object;let prompt='';if(o?.userData.action==='ticket')prompt=state.current.tickets.includes(String(o.userData.id))?'':'E — COLLECT FRAGMENT';else if(o?.userData.action==='drawer')prompt='E — OPEN DRAWER';else if(o?.name==='control cabinet')prompt=state.current.tickets.length===3?'E — OPEN CONTROL CABINET':'E — INSPECT CONTROL CABINET';else if(o?.name==='platform gate')prompt=state.current.power?'E — OPEN GATE':'E — GATE HAS NO POWER';setInteractionPrompt(old=>old===prompt?old:prompt);}
       renderer.render(scene,camera);
     };
     renderer.domElement.addEventListener('click',onClick);
@@ -371,14 +373,15 @@ export default function TunnelChapter({ onBack, devMode = false, onChapterSelect
   useEffect(()=>{state.current.active=screen==='playing';if(screen!=='playing')document.exitPointerLock?.();},[screen,panel]);
   const begin=()=>{resetRef.current?.();state.current.active=true;setScreen('playing');};
   const connect=(wire:string,index:number)=>{const next=[...code];next[index]=wire;setCode(next);};
-  return <div className="game-shell school-shell tunnel-shell">
+  return <div className="game-shell school-shell tunnel-shell cinematic-shell">
     <header className="topbar"><div className="brand"><span className="brand-mark">03</span><span>The Room Is Weird <span style={{opacity:.55}}>/ The Underground</span></span></div><div className="topbar-right"><button className="secondary-button" onClick={onBack}>Back to chapters</button></div></header>
     <main className="game-main"><div className="game-heading"><div><p className="eyebrow">Chapter 03 / The underground</p><h1>The last train left 17 years ago.</h1></div><div className="chapter-pill"><b>{screen==='complete'?'ESCAPED':power?'POWER RESTORED':'LAST SERVICE'}</b> / PLATFORM 0</div></div>
       <section className="stage school-stage tunnel-stage" aria-label="The Underground 3D scene"><div ref={hostRef} className="school-scene-host"/>
-        {screen==='playing'&&<div className="school-hud"><div className="objective"><small>Current objective</small><strong>{objective}</strong></div><div className="school-status"><span className={fear?'danger-dot':''}/>{power?'TRAIN APPROACHING':fear?'LIGHTS ARE UNSTABLE':'NO SERVICE'}</div><div className="school-message" role="status">{message}</div><div className="school-controls"><kbd>W A S D</kbd> MOVE <kbd>MOUSE</kbd> LOOK <kbd>E</kbd> INTERACT</div><div className="school-hint">TICKETS {tickets.length}/3 · {power?'BOARD THE TRAIN':'WATCH THE LIGHTS'}</div><button className="hint-button school-hint-button" onClick={()=>setMessage('Fragments glow faintly near the ticket machines, station office and maintenance cabinet.')}>Need a hint?</button></div>}
-        {panel&&screen==='playing'&&<div className="overlay school-overlay"><div className="dialog-card"><div className="dialog-kicker">MAINTENANCE / EMERGENCY BYPASS</div><h2>Restore the line.</h2><p>Reconnect the three numbered relays in order: 2 → 4 → 1. The train is not supposed to be running.</p><div style={{display:'flex',gap:10,justifyContent:'center',margin:'22px 0'}}>{[1,2,3].map((v,i)=><button key={v} className={code[i]?'primary-button':'secondary-button'} onClick={()=>connect(String((Number(code[i]||v)%4)+1),i)}>{code[i]?`RELAY ${code[i]}`:['RELAY 1','RELAY 2','RELAY 3'][i]}</button>)}</div><div className="dialog-buttons"><button className="primary-button" onClick={()=>{if(code.join(',')==='2,4,1')powerRef.current?.();else{setCode([]);setMessage('Relay overload. Resetting the sequence.');}}}>Restore power</button><button className="secondary-button" onClick={()=>setPanel(false)}>Close panel</button></div></div></div>}
-        {screen!=='playing'&&<div className="overlay school-overlay"><div className="dialog-card"><div className="dialog-kicker">{screen==='complete'?'ESCAPED / RECORD 001':screen==='dead'?'RUN TERMINATED':'CHAPTER 03 / PLATFORM 0'}</div><h2>{screen==='complete'?<>ESCAPED.<br/>MISSION COMPLETED.</>:screen==='dead'?<>THE WATCHER<br/>FOUND YOU.</>:<>The Underground<br/>has no last stop.</>}</h2><p>{screen==='complete'?'The train pulls away. Through the window, the platform shrinks into darkness. Behind you, the Watcher screams as its body ignites and vanishes. The rule was real: anyone who escapes it causes its death. You are the first.':'Find all three ticket fragments. Reach the maintenance cabinet, restore the power, and board the train before the Watcher reaches you.'}</p><div className="dialog-buttons"><button className="primary-button" onClick={begin}>{screen==='complete'?'Ride again':screen==='dead'?'Try again':'Enter Platform 0'}</button>{devMode&&onChapterSelect&&<><button className="secondary-button" onClick={()=>onChapterSelect(1)}>DEV: Chapter 01 — Living Room</button><button className="secondary-button" onClick={()=>onChapterSelect(2)}>DEV: Chapter 02 — School</button></>}<button className="secondary-button" onClick={onBack}>Back to Chapter 02</button></div><div className="title-controls"><span><kbd>WASD</kbd> move</span><span><kbd>MOUSE</kbd> look</span><span><kbd>E</kbd> interact</span></div></div></div>}
+        {screen==='playing'&&<div className="school-hud"><div className="objective"><small>Current objective</small><strong>{objective}</strong></div><div className="school-status"><span className={fear?'danger-dot':''}/>{power?'TRAIN APPROACHING':fear?'LIGHTS ARE UNSTABLE':'NO SERVICE'}</div><div className="school-message" role="status">{message}</div>{interactionPrompt&&<div className="interaction-prompt">{interactionPrompt}</div>}<div className="school-controls"><kbd>W A S D</kbd> MOVE <kbd>MOUSE</kbd> LOOK <kbd>E</kbd> INTERACT</div><div className="school-hint">TICKETS {tickets.length}/3 Â· {power?'BOARD THE TRAIN':'WATCH THE LIGHTS'}</div><button className="hint-button school-hint-button" onClick={()=>setMessage('Fragments glow faintly near the ticket machines, station office and maintenance cabinet.')}>Need a hint?</button></div>}
+        {panel&&screen==='playing'&&<div className="overlay school-overlay"><div className="dialog-card"><div className="dialog-kicker">MAINTENANCE / EMERGENCY BYPASS</div><h2>Restore the line.</h2><p>Reconnect the three numbered relays in order: 2 â†’ 4 â†’ 1. The train is not supposed to be running.</p><div style={{display:'flex',gap:10,justifyContent:'center',margin:'22px 0'}}>{[1,2,3].map((v,i)=><button key={v} className={code[i]?'primary-button':'secondary-button'} onClick={()=>connect(String((Number(code[i]||v)%4)+1),i)}>{code[i]?`RELAY ${code[i]}`:['RELAY 1','RELAY 2','RELAY 3'][i]}</button>)}</div><div className="dialog-buttons"><button className="primary-button" onClick={()=>{if(code.join(',')==='2,4,1')powerRef.current?.();else{setCode([]);setMessage('Relay overload. Resetting the sequence.');}}}>Restore power</button><button className="secondary-button" onClick={()=>setPanel(false)}>Close panel</button></div></div></div>}
+        {screen!=='playing'&&<div className="overlay school-overlay"><div className="dialog-card"><div className="dialog-kicker">{screen==='complete'?'ESCAPED / RECORD 001':screen==='dead'?'RUN TERMINATED':'CHAPTER 03 / PLATFORM 0'}</div><h2>{screen==='complete'?<>ESCAPED.<br/>MISSION COMPLETED.</>:screen==='dead'?<>THE WATCHER<br/>FOUND YOU.</>:<>The Underground<br/>has no last stop.</>}</h2><p>{screen==='complete'?'The train pulls away. Through the window, the platform shrinks into darkness. Behind you, the Watcher screams as its body ignites and vanishes. The rule was real: anyone who escapes it causes its death. You are the first.':'Find all three ticket fragments. Reach the maintenance cabinet, restore the power, and board the train before the Watcher reaches you.'}</p><div className="dialog-buttons"><button className="primary-button" onClick={begin}>{screen==='complete'?'Ride again':screen==='dead'?'Try again':'Enter Platform 0'}</button>{devMode&&onChapterSelect&&<><button className="secondary-button" onClick={()=>onChapterSelect(1)}>DEV: Chapter 01 â€” Living Room</button><button className="secondary-button" onClick={()=>onChapterSelect(2)}>DEV: Chapter 02 â€” School</button></>}<button className="secondary-button" onClick={onBack}>Back to Chapter 02</button></div><div className="title-controls"><span><kbd>WASD</kbd> move</span><span><kbd>MOUSE</kbd> look</span><span><kbd>E</kbd> interact</span></div></div></div>}
       </section><div className="footer-bar"><span><strong>Mind the gap.</strong> Something is standing in it.</span><span>{screen==='complete'?'WATCHER STATUS: DECEASED':power?'TRAIN INBOUND':'PLATFORM 0 / NO SERVICE'}</span></div>
     </main>
   </div>;
 }
+

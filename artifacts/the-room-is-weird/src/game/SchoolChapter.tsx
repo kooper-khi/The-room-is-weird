@@ -13,6 +13,7 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
   const [escaped, setEscaped] = useState(false);
   const [fear, setFear] = useState(0);
   const [hint, setHint] = useState(false);
+  const [interactionPrompt, setInteractionPrompt] = useState('');
   const [wirePuzzle, setWirePuzzle] = useState(false);
   const [wireMatches, setWireMatches] = useState<string[]>([]);
   const stateRef = useRef({ hasCard: false, powerOn: false, escaped: false, active: false });
@@ -403,7 +404,7 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
       // Bring every corridor light online, including damaged fixtures, and make the tubes visibly glow.
       fluorescentLights.forEach(light => { light.color.set('#d8efff'); light.intensity = 5.2; light.distance = 15; light.decay = 1.35; });
       scene.traverse(object => { if (object.name === 'fluorescent fixture' && object instanceof THREE.Mesh) { const mat = object.material as THREE.MeshStandardMaterial; mat.color.set('#eaf7ff'); mat.emissive.set('#b8e5ff'); mat.emissiveIntensity = 2.8; mat.needsUpdate = true; } });
-      setObjective('RUN to the EXIT door at the end of the corridor'); setMessage('POWER RESTORED. The corridor erupts in light. Something is above you…'); setFear(2);
+      setObjective('RUN to the EXIT door at the end of the corridor'); setMessage('POWER RESTORED. The corridor erupts in light. Something is above youâ€¦'); setFear(2);
       // A short, synthesised creature growl: no external audio asset required.
       try { const AudioCtx = window.AudioContext || (window as any).webkitAudioContext; if (AudioCtx) { const audio = new AudioCtx(); void audio.resume(); const osc = audio.createOscillator(); const sub = audio.createOscillator(); const filter = audio.createBiquadFilter(); const gain = audio.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(92, audio.currentTime); osc.frequency.exponentialRampToValueAtTime( 42, audio.currentTime + 1.15); sub.type = 'triangle'; sub.frequency.setValueAtTime(43, audio.currentTime); sub.frequency.exponentialRampToValueAtTime(31, audio.currentTime + 1.3); filter.type = 'lowpass'; filter.frequency.setValueAtTime(520, audio.currentTime); filter.frequency.exponentialRampToValueAtTime(180, audio.currentTime + 1.25); gain.gain.setValueAtTime(.0001, audio.currentTime); gain.gain.exponentialRampToValueAtTime(.16, audio.currentTime + .12); gain.gain.setTargetAtTime(.0001, audio.currentTime + .95, .18); osc.connect(filter); sub.connect(filter); filter.connect(gain); gain.connect(audio.destination); osc.start(); sub.start(); osc.stop(audio.currentTime + 1.5); sub.stop(audio.currentTime + 1.5); window.setTimeout(() => { void audio.close(); }, 1800); } } catch { /* Audio is optional if the browser blocks it. */ }
       // Forced camera turn; the creature drops farther down the corridor to give the player a head start.
@@ -476,7 +477,7 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
         if (index === cardLockerIndex) {
           const card = scene.getObjectByName('staff keycard'); if (card) card.visible = true;
           const cardGlow = scene.getObjectByName('keycard glow'); if (cardGlow) cardGlow.visible = true;
-          setMessage(`KEYCARD FOUND — locker ${index + 1}. The glowing card is inside. Press E again to collect it.`);
+          setMessage(`KEYCARD FOUND â€” locker ${index + 1}. The glowing card is inside. Press E again to collect it.`);
         } else if (index === 0) setMessage('Empty. A torn timetable and a smell of wet metal.');
         else if (index === 2) setMessage('Jammed shut at first, then it gives. Nothing inside but a broken hinge.');
         else setMessage('Just old coats and a locker mirror cracked down the middle.');
@@ -488,7 +489,7 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
         setObjective('Find a way to restore the corridor lights');
         setMessage('KEYCARD ACQUIRED. The red lights begin to pulse faster.'); setFear(1);
       } else if (target === 'notice') {
-        setMessage('A maintenance note: “LIGHTS FAILING? CHECK THE LOOSE PANEL BY THE CRACKED WALL. Follow the red wire.”');
+        setMessage('A maintenance note: â€œLIGHTS FAILING? CHECK THE LOOSE PANEL BY THE CRACKED WALL. Follow the red wire.â€');
         setObjective(s.hasCard ? 'Find the hidden light switch' : 'Search the lockers for a staff keycard');
       } else if (target === 'panel') {
         if (!s.hasCard) { setMessage('The panel edge is stiff. A staff keycard might slip behind the loose latch.'); return; }
@@ -502,7 +503,7 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
       } else if (target === 'breaker') {
         setMessage('This is only a distribution cabinet. The actual light switch is hidden behind a loose panel.');
       } else if (target === 'exit') {
-        if (!s.hasCard) { setMessage('ACCESS DENIED — find the staff keycard.'); return; }
+        if (!s.hasCard) { setMessage('ACCESS DENIED â€” find the staff keycard.'); return; }
         if (!s.powerOn) { setMessage('The EXIT door will not release while the corridor power is off. Find the hidden switch.'); return; }
         s.escaped = true; setEscaped(true); s.active = false;
         setObjective('Escape complete'); setMessage('You made it outside. The school bell rings one last time.');
@@ -561,6 +562,11 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
         }
       }
       if (s.active) {
+        raycaster.setFromCamera(pointer, camera);
+        const promptHit = raycaster.intersectObjects(interactables.filter(o => { let n: THREE.Object3D | null = o; while(n){if(!n.visible)return false;n=n.parent;} return true;}), false).find(h => h.distance < 3.25);
+        const promptTarget = promptHit?.object.userData.target as string | undefined;
+        const promptText = promptTarget ? (promptTarget.startsWith('locker-') ? 'E — OPEN LOCKER' : promptTarget === 'keycard' ? 'E — COLLECT KEYCARD' : promptTarget === 'notice' ? 'E — READ NOTICE' : promptTarget === 'panel' ? 'E — OPEN PANEL' : promptTarget === 'switch' ? 'E — USE SWITCH' : promptTarget === 'breaker' ? 'E — INSPECT BREAKER' : promptTarget === 'exit' ? 'E — OPEN EXIT' : 'E — INTERACT') : '';
+        setInteractionPrompt(old => old === promptText ? old : promptText);
         const f = Number(keys.has('w') || keys.has('arrowup')) - Number(keys.has('s') || keys.has('arrowdown'));
         const side = Number(keys.has('d') || keys.has('arrowright')) - Number(keys.has('a') || keys.has('arrowleft'));
         const fast = keys.has('shift') ? 1.55 : 1;
@@ -652,7 +658,7 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
     setWireMatches(next);
     const correct = ['red', 'blue', 'yellow', 'green'];
     if (next.length === 4 && next.every((value, index) => value === correct[index])) {
-      setMessage('CIRCUIT COMPLETE. POWER RESTORED…');
+      setMessage('CIRCUIT COMPLETE. POWER RESTOREDâ€¦');
       window.setTimeout(() => wireSequenceRef.current?.(), 300);
     } else if (next.every((value, index) => !value || value === correct[index])) {
       setMessage('Wire connected. Keep matching the colours.');
@@ -676,7 +682,7 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
   };
 
   return (
-    <div className="game-shell school-shell">
+    <div className="game-shell school-shell cinematic-shell">
       <header className="topbar">
         <div className="brand"><span className="brand-mark">02</span><span>The Room Is Weird <span style={{opacity:.55}}>/ The Endless School</span></span></div>
         <div className="topbar-right"><button className="secondary-button" type="button" onClick={onBack}>Back to chapters</button></div>
@@ -689,7 +695,7 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
             <div className="objective"><small>Current objective</small><strong>{objective}</strong></div>
             <div className="school-status"><span className={fear > 0 ? 'danger-dot' : ''} />{fear === 2 ? 'RUN' : fear === 1 ? 'YOU ARE NOT ALONE' : 'QUIET HOURS'}</div>
             <div className="school-message" role="status">{message}</div>
-            <div className="school-controls"><kbd>W A S D</kbd> MOVE <kbd>MOUSE</kbd> LOOK <kbd>E</kbd> INTERACT <kbd>SHIFT</kbd> SPRINT</div>
+            {interactionPrompt&&<div className="interaction-prompt">{interactionPrompt}</div>}<div className="school-controls"><kbd>W A S D</kbd> MOVE <kbd>MOUSE</kbd> LOOK <kbd>E</kbd> INTERACT <kbd>SHIFT</kbd> SPRINT</div>
             {hint && <div className="school-hint">Inspect all four lockers. Read the maintenance notice, use your keycard to open the loose panel and find the hidden light switch. The EXIT is at the far end.</div>}
             <button className="hint-button school-hint-button" onClick={() => setHint(v => !v)}>{hint ? 'Hide hint' : 'Need a hint?'}</button>
           </div>}
@@ -702,7 +708,7 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
                 <div style={{display:'grid',gap:14}}>
                   <small style={{color:'#9ca6b5',letterSpacing:2}}>LOOSE WIRES</small>
                   {['red','blue','yellow','green'].map((wire,index)=><div key={wire} draggable onDragStart={e=>{e.dataTransfer.setData('text/plain',wire);e.dataTransfer.effectAllowed='move';}} onClick={()=>clickLooseWire(wire)} style={{display:'flex',alignItems:'center',gap:6,cursor:'grab',padding:'9px 5px',border:'1px solid #363c46',borderRadius:5,background:'#171b22',color:'#e9edf2',fontSize:12}}>
-                    <span style={{display:'inline-block',width:18,height:5,background:wire,boxShadow:`0 0 9px ${wire}`,borderRadius:4}}/><span>{wire.toUpperCase()}</span><span style={{marginLeft:'auto',color:'#7e8793'}}>⠿</span>
+                    <span style={{display:'inline-block',width:18,height:5,background:wire,boxShadow:`0 0 9px ${wire}`,borderRadius:4}}/><span>{wire.toUpperCase()}</span><span style={{marginLeft:'auto',color:'#7e8793'}}>â ¿</span>
                   </div>)}
                 </div>
                 <svg viewBox="0 0 180 220" style={{width:'100%',height:220,overflow:'visible'}}>
@@ -716,7 +722,7 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
                 </div>
               </div>
               <small style={{color:'#9ca6b5'}}>Tip: you can drag the wires, or click a wire to connect it to the next empty terminal.</small>
-              <div className="dialog-buttons"><button className="primary-button" onClick={()=>{if(wireMatches.length===4&&wireMatches.every((v,i)=>v===['red','blue','yellow','green'][i])&&new Set(wireMatches).size===4){wireSequenceRef.current?.();}else{setWireMatches([]);setMessage('SHORT CIRCUIT. The inputs reset — match each colour correctly.');}}}>Connect wires</button><button className="secondary-button" onClick={()=>{setWirePuzzle(false);stateRef.current.active=true;}}>Close panel</button></div>
+              <div className="dialog-buttons"><button className="primary-button" onClick={()=>{if(wireMatches.length===4&&wireMatches.every((v,i)=>v===['red','blue','yellow','green'][i])&&new Set(wireMatches).size===4){wireSequenceRef.current?.();}else{setWireMatches([]);setMessage('SHORT CIRCUIT. The inputs reset â€” match each colour correctly.');}}}>Connect wires</button><button className="secondary-button" onClick={()=>{setWirePuzzle(false);stateRef.current.active=true;}}>Close panel</button></div>
             </div>
           </div>}
           {screen !== 'playing' && <div className="overlay school-overlay">
@@ -726,8 +732,8 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
               <p>{screen === 'complete' ? 'Outside, the sky is dark. The bell rings again from somewhere behind you.' : screen === 'dead' ? 'The creature caught you in the corridor. The school resets, and the keycard will be somewhere different next run.' : 'Search the lockers. Find the maintenance clue, solve the wire puzzle, then reach the EXIT before the thing catches you.'}</p>
               <div className="dialog-buttons">
                 <button className="primary-button" onClick={begin}>{screen === 'complete' ? 'Play again' : screen === 'dead' ? 'Try again' : 'Enter the school'}</button>
-                {screen === 'complete' && onNext && <button className="secondary-button" onClick={onNext}>Next chapter: The Underground →</button>}
-                {devMode && onChapterSelect && <><button className="secondary-button" onClick={() => onChapterSelect(1)}>DEV: Chapter 01 — Living Room</button><button className="secondary-button" onClick={() => onChapterSelect(3)}>DEV: Chapter 03 — Underground</button></>}
+                {screen === 'complete' && onNext && <button className="secondary-button" onClick={onNext}>Next chapter: The Underground â†’</button>}
+                {devMode && onChapterSelect && <><button className="secondary-button" onClick={() => onChapterSelect(1)}>DEV: Chapter 01 â€” Living Room</button><button className="secondary-button" onClick={() => onChapterSelect(3)}>DEV: Chapter 03 â€” Underground</button></>}
                 <button className="secondary-button" onClick={onBack}>Back to Chapter 01</button>
               </div>
               <div className="title-controls"><span><kbd>WASD</kbd> move</span><span><kbd>SHIFT</kbd> sprint</span><span><kbd>E</kbd> interact</span></div>
@@ -739,4 +745,5 @@ export default function SchoolChapter({ onBack, onNext, devMode = false, onChapt
     </div>
   );
 }
+
 

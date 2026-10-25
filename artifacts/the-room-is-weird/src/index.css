@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+﻿@import 'tailwindcss';
 @import 'tw-animate-css';
 
 :root {
@@ -273,3 +273,76 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--coral); out
 .school-shell .footer-bar strong { color:#e7edf8; }
 @keyframes school-pulse { from { opacity:.45; } to { opacity:1; } }
 @media (max-width:620px) { .school-controls { width:calc(100% - 20px); justify-content:center; gap:5px; font-size:7px; } .school-message { top:95px; font-size:10px; } .school-status { top:56px; right:10px; } }
+
+/* Clean title screen: one reference image, with transparent functional hit areas. */
+html, body, #root { width:100%; min-height:100%; margin:0; }
+body:has(.cinematic-shell) { overflow:hidden; background:#080808; }
+.game-shell.cinematic-shell { display:block; width:100vw; height:100dvh; min-height:100dvh; margin:0; padding:0; overflow:hidden; background:#080808; }
+.game-shell.cinematic-shell > .topbar { display:none; }
+.game-shell.cinematic-shell > .game-main { display:block; position:static; flex:none; width:100%; height:100%; min-height:0; margin:0; padding:0; }
+.game-shell.cinematic-shell .stage { position:fixed; inset:0; z-index:1; width:100vw; height:100dvh; min-height:0; max-height:none; max-width:none; aspect-ratio:auto; margin:0; overflow:hidden; border:0; border-radius:0; box-shadow:none; background:#080808; }
+.game-shell.cinematic-shell .stage > .title-static-background { position:absolute; inset:0; width:100%; height:100%; background-image:url('/title-background.png'); background-position:center; background-size:100% 100%; background-repeat:no-repeat; }
+.game-shell.cinematic-shell .stage > .overlay.title-overlay { position:absolute; inset:0; z-index:5; display:block; width:100%; height:100%; margin:0; padding:0; background:transparent; border:0; box-shadow:none; }
+.game-shell.cinematic-shell .title-image-hitboxes { position:absolute; inset:0; display:block; width:100%; height:100%; margin:0; padding:0; background:transparent; border:0; box-shadow:none; }
+.game-shell.cinematic-shell .title-image-hitboxes .image-hitbox { position:absolute; left:6.7%; width:19%; height:4.2%; min-height:20px; margin:0; padding:0; color:transparent; background:transparent; border:1px solid transparent; box-shadow:none; cursor:pointer; }
+.game-shell.cinematic-shell .title-image-hitboxes .image-hitbox:hover,
+.game-shell.cinematic-shell .title-image-hitboxes .image-hitbox:focus-visible { background:rgba(227,177,76,.16); border-color:rgba(227,177,76,.9); outline:2px solid rgba(227,177,76,.55); outline-offset:1px; }
+.game-shell.cinematic-shell .title-image-hitboxes .hit-continue { top:36.8%; }
+.game-shell.cinematic-shell .title-image-hitboxes .hit-new-game { top:42.6%; }
+.game-shell.cinematic-shell .title-image-hitboxes .hit-chapter-select { top:48.0%; }
+.game-shell.cinematic-shell .title-image-hitboxes .hit-settings { top:53.3%; }
+.game-shell.cinematic-shell .title-image-hitboxes .hit-credits { top:58.7%; }
+.game-shell.cinematic-shell .stage > .hud-top,
+.game-shell.cinematic-shell .stage > .hud-bottom,
+.game-shell.cinematic-shell .stage > .objective,
+.game-shell.cinematic-shell .stage > .title-menu-top,
+.game-shell.cinematic-shell .stage > .title-menu-bottom { display:none !important; }
+/* Do not blur the baked-in title artwork; the shared gameplay overlay normally blurs scenes. */
+.game-shell.cinematic-shell .stage > .overlay.title-overlay { backdrop-filter:none !important; -webkit-backdrop-filter:none !important; filter:none !important; }
+.game-shell.cinematic-shell .overlay,
+.game-shell.cinematic-shell .title-overlay,
+.game-shell.cinematic-shell .stage .overlay { backdrop-filter:none !important; -webkit-backdrop-filter:none !important; filter:none !important; }
+.game-shell.cinematic-shell .stage .hud-top,
+.game-shell.cinematic-shell .stage .hud-bottom { display:none !important; }
+
+
+/* Remove any frame around the title artwork itself. */
+.game-shell.cinematic-shell,
+.game-shell.cinematic-shell .stage,
+.game-shell.cinematic-shell .stage > .title-static-background { border:0 !important; outline:0 !important; box-shadow:none !important; }
+.game-shell.cinematic-shell .stage > .title-static-background { border-radius:0 !important; }
+
+/* Minimal, low-noise action prompt shared by gameplay chapters. */
+.game-shell.cinematic-shell .interaction-prompt { position:absolute; left:50%; top:62%; transform:translate(-50%,-50%); padding:0; background:transparent; border:0; box-shadow:none; color:rgba(230,255,246,.92); font-size:12px; font-weight:500; letter-spacing:.08em; text-shadow:0 1px 5px rgba(0,0,0,.95); pointer-events:none; white-space:nowrap; }
+
+/* IMMERSION PASS — make gameplay feel like a full-screen game, not a framed webpage. */
+.game-shell.cinematic-shell { background:#08090d !important; }
+.game-shell.cinematic-shell > .topbar { position:absolute; top:0; left:0; right:0; z-index:20; height:58px; background:linear-gradient(180deg,rgba(5,7,10,.88),rgba(5,7,10,0)); border:0; color:#f4f0e7; }
+.game-shell.cinematic-shell .brand { color:#f4f0e7; }
+.game-shell.cinematic-shell .top-note { color:rgba(244,240,231,.55); }
+.game-shell.cinematic-shell > .game-main { display:contents !important; }
+.game-shell.cinematic-shell .game-heading,
+.game-shell.cinematic-shell .footer-bar { display:none !important; }
+.game-shell.cinematic-shell .stage { position:fixed !important; inset:0 !important; width:100vw !important; height:100dvh !important; max-width:none !important; max-height:none !important; min-height:0 !important; aspect-ratio:auto !important; margin:0 !important; border:0 !important; outline:0 !important; border-radius:0 !important; box-shadow:none !important; overflow:hidden !important; background:#08090d !important; }
+.game-shell.cinematic-shell .stage canvas,
+.game-shell.cinematic-shell .stage .scene-host,
+.game-shell.cinematic-shell .stage .school-scene-host { border:0 !important; outline:0 !important; border-radius:0 !important; }
+.game-shell.cinematic-shell .hud-top { top:76px; left:clamp(16px,3vw,42px); right:clamp(16px,3vw,42px); }
+.game-shell.cinematic-shell .objective { background:rgba(10,12,16,.72) !important; color:#f5f1e8 !important; border:1px solid rgba(236,211,160,.22) !important; border-radius:3px 10px 10px 10px !important; box-shadow:0 12px 38px rgba(0,0,0,.2) !important; backdrop-filter:blur(12px); }
+.game-shell.cinematic-shell .objective strong { color:#fff8e8; }
+.game-shell.cinematic-shell .room-stamp,
+.game-shell.cinematic-shell .school-status { background:rgba(10,12,16,.72) !important; color:#e8e0d0 !important; border:1px solid rgba(236,211,160,.22) !important; backdrop-filter:blur(12px); }
+.game-shell.cinematic-shell .bottom-hud { left:clamp(16px,3vw,42px); right:clamp(16px,3vw,42px); bottom:clamp(14px,3vh,30px); }
+.game-shell.cinematic-shell .inventory-remote,
+.game-shell.cinematic-shell .hint-button,
+.game-shell.cinematic-shell .journal-button { background:rgba(10,12,16,.76) !important; color:#f4f0e7 !important; border:1px solid rgba(236,211,160,.24) !important; border-radius:5px !important; box-shadow:0 8px 28px rgba(0,0,0,.22) !important; backdrop-filter:blur(12px); }
+.game-shell.cinematic-shell .inventory-remote:hover,
+.game-shell.cinematic-shell .hint-button:hover,
+.game-shell.cinematic-shell .journal-button:hover { background:rgba(34,30,24,.9) !important; border-color:rgba(236,211,160,.6) !important; }
+.game-shell.cinematic-shell .prompt { background:rgba(8,10,13,.8) !important; color:#fff8e8 !important; border:1px solid rgba(236,211,160,.3) !important; backdrop-filter:blur(10px); }
+.game-shell.cinematic-shell .overlay:not(.title-overlay) { background:rgba(3,5,8,.58) !important; backdrop-filter:blur(7px) !important; }
+@media (max-width:760px) {
+ .game-shell.cinematic-shell > .topbar { height:50px; padding:0 14px; }
+ .game-shell.cinematic-shell .hud-top { top:61px; left:12px; right:12px; }
+ .game-shell.cinematic-shell .bottom-hud { left:12px; right:12px; bottom:12px; }
+}

@@ -10,6 +10,7 @@ import {
   RotateCcw,
   Settings2,
   X,
+  ChevronRight,
 } from 'lucide-react';
 import RoomScene from './game/RoomScene';
 import {
@@ -66,6 +67,8 @@ function App({ callbacks = {} }: Props) {
   const [screen, setScreen] = useState<'title' | 'playing' | 'paused' | 'settings' | 'complete'>('title');
   const [previousScreen, setPreviousScreen] = useState<'title' | 'playing' | 'paused' | 'complete'>('title');
   const [chapterSelectUnlocked, setChapterSelectUnlocked] = useState(false);
+  const [showChapterSelect, setShowChapterSelect] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
   const [devCode, setDevCode] = useState('');
   const [devCodeMessage, setDevCodeMessage] = useState('');
   const [sensitivity, setSensitivity] = useState(1);
@@ -173,7 +176,7 @@ function App({ callbacks = {} }: Props) {
   const overlay = screen === 'title' || screen === 'paused' || screen === 'settings' || screen === 'complete';
 
   return (
-    <div className="game-shell">
+    <div className="game-shell cinematic-shell">
       <header className="topbar">
         <div className="brand" aria-label="The Room Is Weird">
           <span className="brand-mark"><Move3D size={18} strokeWidth={2.4} /></span>
@@ -192,11 +195,11 @@ function App({ callbacks = {} }: Props) {
             <p className="eyebrow">Chapter 01 / The living room</p>
             <h1>A perfectly normal room.</h1>
           </div>
-          <div className="chapter-pill"><b>DAY 01</b>&nbsp; Â· &nbsp;No one is home</div>
+          <div className="chapter-pill"><b>DAY 01</b>&nbsp; Ã‚Â· &nbsp;No one is home</div>
         </div>
 
         <section className="stage" aria-label="Game scene">
-          <RoomScene puzzle={puzzle} active={isActive} onAction={runAction} sensitivity={sensitivity} onLookAt={setHovered} onFootstep={playFootstep} />
+          {screen === 'title' ? <div className="title-static-background" aria-hidden="true" /> : <RoomScene puzzle={puzzle} active={isActive} onAction={runAction} sensitivity={sensitivity} onLookAt={setHovered} onFootstep={playFootstep} />}
           <div className="hud-top">
             <div className="objective" data-testid="status-objective">
               <small>Current objective</small>
@@ -234,23 +237,23 @@ function App({ callbacks = {} }: Props) {
           )}
           {isActive && showJournal && (
             <aside className="journal-card" id="field-notes" aria-label="Room field notes">
-              <div className="journal-heading"><div><small>OBSERVATION LOG</small><strong>Things that are definitely normal</strong></div><button type="button" aria-label="Close field notes" onClick={() => setShowJournal(false)}>Ã—</button></div>
+              <div className="journal-heading"><div><small>OBSERVATION LOG</small><strong>Things that are definitely normal</strong></div><button type="button" aria-label="Close field notes" onClick={() => setShowJournal(false)}>Ãƒâ€”</button></div>
               <p className="journal-summary">{puzzle.inspected.length === 5 ? 'All five oddities documented. You are either thorough or avoiding the exit.' : `${5 - puzzle.inspected.length} ${5 - puzzle.inspected.length === 1 ? 'oddity remains' : 'oddities remain'} to investigate.`}</p>
               <ul>{fieldNotes.map((entry) => {
                 const found = puzzle.inspected.includes(entry.target);
-                return <li key={entry.target} className={found ? 'note-found' : ''}><span className="note-mark">{found ? 'âœ“' : 'Â·'}</span><div><strong>{found ? entry.title : '??? â€” Unconfirmed oddity'}</strong><p>{found ? entry.note : 'Look around and inspect something suspicious.'}</p></div></li>;
+                return <li key={entry.target} className={found ? 'note-found' : ''}><span className="note-mark">{found ? 'Ã¢Å“â€œ' : 'Ã‚Â·'}</span><div><strong>{found ? entry.title : '??? Ã¢â‚¬â€ Unconfirmed oddity'}</strong><p>{found ? entry.note : 'Look around and inspect something suspicious.'}</p></div></li>;
               })}</ul>
             </aside>
           )}
 
           {overlay && (
-            <div className="overlay">
+            <div className={`overlay${screen === 'title' ? ' title-overlay' : ''}`} style={screen === 'title' ? { backdropFilter: 'none', WebkitBackdropFilter: 'none', filter: 'none', animation: 'none', background: 'transparent' } : undefined}>
               {screen === 'settings' ? (
                 <div className="dialog-card" role="dialog" aria-modal="true" aria-labelledby="settings-title">
                   <div className="dialog-kicker">Make yourself at home</div>
                   <h2 id="settings-title">Settings</h2>
                   <p>Fine-tune the room. It will pretend not to notice.</p>
-                  <label className="settings-row"><span>Look speed</span><input type="range" min=".4" max="2" step=".1" value={sensitivity} onChange={(event) => changeSensitivity(Number(event.target.value))} data-testid="input-sensitivity" /><span className="settings-value">{sensitivity.toFixed(1)}Ã—</span></label>
+                  <label className="settings-row"><span>Look speed</span><input type="range" min=".4" max="2" step=".1" value={sensitivity} onChange={(event) => changeSensitivity(Number(event.target.value))} data-testid="input-sensitivity" /><span className="settings-value">{sensitivity.toFixed(1)}Ãƒâ€”</span></label>
                   <label className="settings-row"><span>Sound level</span><input type="range" min="0" max="1" step=".01" value={volume} onChange={(event) => changeVolume(Number(event.target.value))} data-testid="input-volume" /><span className="settings-value">{Math.round(volume * 100)}%</span></label>
                   <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,.12)' }}>
                     <div className="dialog-kicker">Developer access</div>
@@ -261,25 +264,23 @@ function App({ callbacks = {} }: Props) {
                     </form>
                     {devCodeMessage && <p role="status" style={{ marginTop: 10, marginBottom: 0 }}>{devCodeMessage}</p>}
                     {chapterSelectUnlocked && <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
-                      <button type="button" className="secondary-button" onClick={() => { setChapter('living-room'); setScreen('title'); setPreviousScreen('title'); }}>Chapter 01 — The Living Room</button>
-                      <button type="button" className="secondary-button" onClick={() => setChapter('school')}>Chapter 02 — The School</button>
-                      <button type="button" className="secondary-button" onClick={() => setChapter('underground')}>Chapter 03 — The Underground</button>
+                      <button type="button" className="secondary-button" onClick={() => { setChapter('living-room'); setScreen('title'); setPreviousScreen('title'); }}>Chapter 01 â€” The Living Room</button>
+                      <button type="button" className="secondary-button" onClick={() => setChapter('school')}>Chapter 02 â€” The School</button>
+                      <button type="button" className="secondary-button" onClick={() => setChapter('underground')}>Chapter 03 â€” The Underground</button>
                     </div>}
                   </div>
                   <div className="dialog-buttons"><button type="button" className="primary-button" data-testid="button-settings-done" onClick={() => setScreen(previousScreen)}><Check size={15} /> All set</button></div>
                 </div>
               ) : screen === 'title' ? (
-                <div className="dialog-card" role="dialog" aria-modal="true" aria-labelledby="title-heading">
-                  <div className="dialog-kicker">A very small mystery</div>
-                  <h2 id="title-heading">The room<br />is weird.</h2>
-                  <p>Find the remote. Turn the room on its head. Get out before the furniture starts asking questions.</p>
-                  <div className="dialog-buttons">
-                    <button className="primary-button" type="button" data-testid="button-start" onClick={startGame}>Step inside <ArrowRight size={16} /></button>
-                    <button className="secondary-button" type="button" data-testid="button-title-settings" onClick={() => { setPreviousScreen('title'); setScreen('settings'); }}><Settings2 size={15} /> Settings</button>
-                  </div>
-                  <div className="title-controls"><span><kbd>WASD</kbd> move</span><span><kbd>MOUSE</kbd> look</span><span><kbd>E</kbd> inspect</span></div>
-                </div>
-              ) : screen === 'paused' ? (
+                  <div className="title-menu title-image-hitboxes" role="dialog" aria-label="Main menu">
+                    <button className="image-hitbox hit-continue" type="button" aria-label="Continue" onClick={startGame} />
+                    <button className="image-hitbox hit-new-game" type="button" aria-label="New Game" onClick={restartGame} />
+                    <button className="image-hitbox hit-chapter-select" type="button" aria-label="Chapter Select" onClick={() => setShowChapterSelect(v => !v)} />
+                    {showChapterSelect && <div className="title-submenu"><button type="button" onClick={() => { setChapter('living-room'); setShowChapterSelect(false); }}>01 — THE LIVING ROOM</button><button type="button" onClick={() => { setChapter('school'); setShowChapterSelect(false); }}>02 — THE SCHOOL</button><button type="button" onClick={() => { setChapter('underground'); setShowChapterSelect(false); }}>03 — THE UNDERGROUND</button></div>}
+                    <button className="image-hitbox hit-settings" type="button" aria-label="Settings" onClick={() => { setPreviousScreen('title'); setScreen('settings'); }} />
+                    <button className="image-hitbox hit-credits" type="button" aria-label="Credits" onClick={() => setShowCredits(v => !v)} />
+                    {showCredits && <div className="title-credits-panel">THE ROOM IS WEIRD · Created with care</div>}
+                  </div>) : screen === 'paused' ? (
                 <div className="dialog-card" role="dialog" aria-modal="true" aria-labelledby="pause-heading">
                   <div className="dialog-kicker">Take your time</div>
                   <h2 id="pause-heading">Paused.</h2>
@@ -315,4 +316,6 @@ function App({ callbacks = {} }: Props) {
 }
 
 export default App;
+
+
 
