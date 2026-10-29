@@ -25,6 +25,7 @@ import {
 import { RoomAudio } from './game/audio';
 import SchoolChapter from './game/SchoolChapter';
 import TunnelChapter from './game/TunnelChapter';
+import RepairLabChapter from './game/RepairLabChapter';
 
 export type GameFrontendCallbacks = {
   onStart?: () => void;
@@ -62,7 +63,7 @@ function targetForButton(target: InteractionTarget) {
 }
 
 function App({ callbacks = {} }: Props) {
-  const [chapter, setChapter] = useState<'living-room' | 'school' | 'underground'>('living-room');
+  const [chapter, setChapter] = useState<'living-room' | 'school' | 'underground' | 'repair-lab'>('living-room');
   const [puzzle, setPuzzle] = useState<PuzzleState>(() => createPuzzleState());
   const [screen, setScreen] = useState<'title' | 'playing' | 'paused' | 'settings' | 'complete'>('title');
   const [previousScreen, setPreviousScreen] = useState<'title' | 'playing' | 'paused' | 'complete'>('title');
@@ -170,6 +171,7 @@ function App({ callbacks = {} }: Props) {
 
   if (chapter === 'school') return <SchoolChapter onBack={() => setChapter('living-room')} onNext={() => setChapter('underground')} devMode={chapterSelectUnlocked} onChapterSelect={(next) => setChapter(next === 1 ? 'living-room' : next === 2 ? 'school' : 'underground')} />;
   if (chapter === 'underground') return <TunnelChapter onBack={() => setChapter('school')} devMode={chapterSelectUnlocked} onChapterSelect={(next) => setChapter(next === 1 ? 'living-room' : next === 2 ? 'school' : 'underground')} />;
+  if (chapter === 'repair-lab') return <RepairLabChapter onBack={() => setChapter('underground')} />;
 
   const objective = getObjective(puzzle);
   const progress = [puzzle.hasRemote, puzzle.roomFlipped, puzzle.switchActivated, puzzle.complete];
@@ -267,6 +269,7 @@ function App({ callbacks = {} }: Props) {
                       <button type="button" className="secondary-button" onClick={() => { setChapter('living-room'); setScreen('title'); setPreviousScreen('title'); }}>Chapter 01 â€” The Living Room</button>
                       <button type="button" className="secondary-button" onClick={() => setChapter('school')}>Chapter 02 â€” The School</button>
                       <button type="button" className="secondary-button" onClick={() => setChapter('underground')}>Chapter 03 â€” The Underground</button>
+                      <button type="button" className="secondary-button" onClick={() => setChapter('repair-lab')}>Chapter 04 â€” The Maze (in progress)</button>
                     </div>}
                   </div>
                   <div className="dialog-buttons"><button type="button" className="primary-button" data-testid="button-settings-done" onClick={() => setScreen(previousScreen)}><Check size={15} /> All set</button></div>
@@ -276,7 +279,35 @@ function App({ callbacks = {} }: Props) {
                     <button className="image-hitbox hit-continue" type="button" aria-label="Continue" onClick={startGame} />
                     <button className="image-hitbox hit-new-game" type="button" aria-label="New Game" onClick={restartGame} />
                     <button className="image-hitbox hit-chapter-select" type="button" aria-label="Chapter Select" onClick={() => setShowChapterSelect(v => !v)} />
-                    {showChapterSelect && <div className="title-submenu"><button type="button" onClick={() => { setChapter('living-room'); setShowChapterSelect(false); }}>01 — THE LIVING ROOM</button><button type="button" onClick={() => { setChapter('school'); setShowChapterSelect(false); }}>02 — THE SCHOOL</button><button type="button" onClick={() => { setChapter('underground'); setShowChapterSelect(false); }}>03 — THE UNDERGROUND</button></div>}
+                    {showChapterSelect && (
+                      <div className="chapter-select-backdrop" role="presentation" onClick={() => setShowChapterSelect(false)}>
+                        <section className="chapter-select-panel" role="dialog" aria-modal="true" aria-labelledby="chapter-select-title" onClick={(event) => event.stopPropagation()}>
+                          <header className="chapter-select-header">
+                            <div>
+                              <div className="chapter-select-eyebrow">THE ROOM IS WEIRD <span className="chapter-select-divider">/</span> LOCATIONS</div>
+                              <h2 id="chapter-select-title">Chapter select</h2>
+                              <p>Choose where to go.</p>
+                            </div>
+                            <button className="chapter-select-close" type="button" aria-label="Close chapter select" onClick={() => setShowChapterSelect(false)}><X size={19} /></button>
+                          </header>
+                          <div className="chapter-list">
+                            <button className="chapter-list-item" type="button" onClick={() => { setChapter('living-room'); setShowChapterSelect(false); }}>
+                              <span className="chapter-list-number">01</span><span className="chapter-list-copy"><strong>The Living Room</strong><small>Start here</small></span><ChevronRight size={18} />
+                            </button>
+                            <button className="chapter-list-item" type="button" onClick={() => { setChapter('school'); setShowChapterSelect(false); }}>
+                              <span className="chapter-list-number">02</span><span className="chapter-list-copy"><strong>The School</strong><small>Chapter two</small></span><ChevronRight size={18} />
+                            </button>
+                            <button className="chapter-list-item" type="button" onClick={() => { setChapter('underground'); setShowChapterSelect(false); }}>
+                              <span className="chapter-list-number">03</span><span className="chapter-list-copy"><strong>The Underground</strong><small>Chapter three</small></span><ChevronRight size={18} />
+                            </button>
+                            <button className="chapter-list-item" type="button" onClick={() => { setChapter('repair-lab'); setShowChapterSelect(false); }}>
+                              <span className="chapter-list-number">04</span><span className="chapter-list-copy"><strong>The Maze</strong><small>In progress</small></span><ChevronRight size={18} />
+                            </button>
+                          </div>
+                          <footer className="chapter-select-bottom"><span><span className="chapter-select-key">ESC</span> BACK</span><span>04 LOCATIONS</span></footer>
+                        </section>
+                      </div>
+                    )}
                     <button className="image-hitbox hit-settings" type="button" aria-label="Settings" onClick={() => { setPreviousScreen('title'); setScreen('settings'); }} />
                     <button className="image-hitbox hit-credits" type="button" aria-label="Credits" onClick={() => setShowCredits(v => !v)} />
                     {showCredits && <div className="title-credits-panel">THE ROOM IS WEIRD · Created with care</div>}
