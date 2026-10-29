@@ -26,6 +26,7 @@ import { RoomAudio } from './game/audio';
 import SchoolChapter from './game/SchoolChapter';
 import TunnelChapter from './game/TunnelChapter';
 import RepairLabChapter from './game/RepairLabChapter';
+import ShockwaveGloveLevel from './game/shockwave-glove/ShockwaveGloveLevel';
 
 export type GameFrontendCallbacks = {
   onStart?: () => void;
@@ -63,7 +64,7 @@ function targetForButton(target: InteractionTarget) {
 }
 
 function App({ callbacks = {} }: Props) {
-  const [chapter, setChapter] = useState<'living-room' | 'school' | 'underground' | 'repair-lab'>('living-room');
+  const [chapter, setChapter] = useState<'living-room' | 'school' | 'underground' | 'repair-lab' | 'gauntlet'>('living-room');
   const [puzzle, setPuzzle] = useState<PuzzleState>(() => createPuzzleState());
   const [screen, setScreen] = useState<'title' | 'playing' | 'paused' | 'settings' | 'complete'>('title');
   const [previousScreen, setPreviousScreen] = useState<'title' | 'playing' | 'paused' | 'complete'>('title');
@@ -172,6 +173,7 @@ function App({ callbacks = {} }: Props) {
   if (chapter === 'school') return <SchoolChapter onBack={() => setChapter('living-room')} onNext={() => setChapter('underground')} devMode={chapterSelectUnlocked} onChapterSelect={(next) => setChapter(next === 1 ? 'living-room' : next === 2 ? 'school' : 'underground')} />;
   if (chapter === 'underground') return <TunnelChapter onBack={() => setChapter('school')} devMode={chapterSelectUnlocked} onChapterSelect={(next) => setChapter(next === 1 ? 'living-room' : next === 2 ? 'school' : 'underground')} />;
   if (chapter === 'repair-lab') return <RepairLabChapter onBack={() => setChapter('underground')} />;
+  if (chapter === 'gauntlet') return <ShockwaveGloveLevel onBack={() => setChapter('living-room')} onComplete={() => setChapter('living-room')} devMode={chapterSelectUnlocked} volume={volume} />;
 
   const objective = getObjective(puzzle);
   const progress = [puzzle.hasRemote, puzzle.roomFlipped, puzzle.switchActivated, puzzle.complete];
@@ -304,7 +306,10 @@ function App({ callbacks = {} }: Props) {
                               <span className="chapter-list-number">04</span><span className="chapter-list-copy"><strong>The Maze</strong><small>In progress</small></span><ChevronRight size={18} />
                             </button>
                           </div>
-                          <footer className="chapter-select-bottom"><span><span className="chapter-select-key">ESC</span> BACK</span><span>04 LOCATIONS</span></footer>
+                            <button className="chapter-list-item" type="button" onClick={() => { setChapter('gauntlet'); setShowChapterSelect(false); }}>
+                              <span className="chapter-list-number">05</span><span className="chapter-list-copy"><strong>The Gauntlet</strong><small>Shockwave Glove</small></span><ChevronRight size={18} />
+                            </button>
+                          <footer className="chapter-select-bottom"><span><span className="chapter-select-key">ESC</span> BACK</span><span>05 LOCATIONS</span></footer>
                         </section>
                       </div>
                     )}
