@@ -27,6 +27,7 @@ import SchoolChapter from './game/SchoolChapter';
 import TunnelChapter from './game/TunnelChapter';
 import RepairLabChapter from './game/RepairLabChapter';
 import ShockwaveGloveLevel from './game/shockwave-glove/ShockwaveGloveLevel';
+import InBetweenChapter from './game/InBetweenChapter';
 
 export type GameFrontendCallbacks = {
   onStart?: () => void;
@@ -64,7 +65,7 @@ function targetForButton(target: InteractionTarget) {
 }
 
 function App({ callbacks = {} }: Props) {
-  const [chapter, setChapter] = useState<'living-room' | 'school' | 'underground' | 'repair-lab' | 'gauntlet'>('living-room');
+  const [chapter, setChapter] = useState<'living-room' | 'school' | 'underground' | 'repair-lab' | 'gauntlet' | 'in-between'>('living-room');
   const [puzzle, setPuzzle] = useState<PuzzleState>(() => createPuzzleState());
   const [screen, setScreen] = useState<'title' | 'playing' | 'paused' | 'settings' | 'complete'>('title');
   const [previousScreen, setPreviousScreen] = useState<'title' | 'playing' | 'paused' | 'complete'>('title');
@@ -174,6 +175,7 @@ function App({ callbacks = {} }: Props) {
   if (chapter === 'underground') return <TunnelChapter onBack={() => setChapter('school')} devMode={chapterSelectUnlocked} onChapterSelect={(next) => setChapter(next === 1 ? 'living-room' : next === 2 ? 'school' : 'underground')} />;
   if (chapter === 'repair-lab') return <RepairLabChapter onBack={() => setChapter('underground')} />;
   if (chapter === 'gauntlet') return <ShockwaveGloveLevel onBack={() => setChapter('living-room')} onComplete={() => setChapter('living-room')} devMode={chapterSelectUnlocked} volume={volume} />;
+  if (chapter === 'in-between') return <InBetweenChapter onBack={() => setChapter('living-room')} onComplete={() => setChapter('living-room')} devMode={chapterSelectUnlocked} />;
 
   const objective = getObjective(puzzle);
   const progress = [puzzle.hasRemote, puzzle.roomFlipped, puzzle.switchActivated, puzzle.complete];
@@ -271,7 +273,9 @@ function App({ callbacks = {} }: Props) {
                       <button type="button" className="secondary-button" onClick={() => { setChapter('living-room'); setScreen('title'); setPreviousScreen('title'); }}>Chapter 01 â€” The Living Room</button>
                       <button type="button" className="secondary-button" onClick={() => setChapter('school')}>Chapter 02 â€” The School</button>
                       <button type="button" className="secondary-button" onClick={() => setChapter('underground')}>Chapter 03 â€” The Underground</button>
-                      <button type="button" className="secondary-button" onClick={() => setChapter('repair-lab')}>Chapter 04 â€” The Maze (in progress)</button>
+                      <button type="button" className="secondary-button" onClick={() => setChapter('repair-lab')}>Chapter 04 — The Maze (in progress)</button>
+                      <button type="button" className="secondary-button" onClick={() => setChapter('gauntlet')}>Chapter 05 — The Gauntlet</button>
+                      <button type="button" className="secondary-button" onClick={() => setChapter('in-between')}>Chapter 06 — The Impossible Facility</button>
                     </div>}
                   </div>
                   <div className="dialog-buttons"><button type="button" className="primary-button" data-testid="button-settings-done" onClick={() => setScreen(previousScreen)}><Check size={15} /> All set</button></div>
@@ -305,11 +309,14 @@ function App({ callbacks = {} }: Props) {
                             <button className="chapter-list-item" type="button" onClick={() => { setChapter('repair-lab'); setShowChapterSelect(false); }}>
                               <span className="chapter-list-number">04</span><span className="chapter-list-copy"><strong>The Maze</strong><small>In progress</small></span><ChevronRight size={18} />
                             </button>
-                          </div>
                             <button className="chapter-list-item" type="button" onClick={() => { setChapter('gauntlet'); setShowChapterSelect(false); }}>
                               <span className="chapter-list-number">05</span><span className="chapter-list-copy"><strong>The Gauntlet</strong><small>Shockwave Glove</small></span><ChevronRight size={18} />
                             </button>
-                          <footer className="chapter-select-bottom"><span><span className="chapter-select-key">ESC</span> BACK</span><span>05 LOCATIONS</span></footer>
+                            <button className="chapter-list-item" type="button" onClick={() => { setChapter('in-between'); setShowChapterSelect(false); }}>
+                              <span className="chapter-list-number">06</span><span className="chapter-list-copy"><strong>The Impossible Facility</strong><small>The corridor keeps changing</small></span><ChevronRight size={18} />
+                            </button>
+                          </div>
+                          <footer className="chapter-select-bottom"><span><span className="chapter-select-key">ESC</span> BACK</span><span>06 LOCATIONS</span></footer>
                         </section>
                       </div>
                     )}
