@@ -36,7 +36,7 @@ export class Particles {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(this.pos, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(this.col, 3));
-    const mat = new THREE.PointsMaterial({ size, map: tex, vertexColors: true, transparent: true, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, sizeAttenuation: true, toneMapped: false });
+    const mat = new THREE.PointsMaterial({ size, map: tex, vertexColors: true, transparent: true, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, sizeAttenuation: true });
     this.points = new THREE.Points(geo, mat);
     this.points.frustumCulled = false;
   }
@@ -181,7 +181,7 @@ export class Dragon {
   private R = 30; private S = 10;
   private posAttr: THREE.BufferAttribute; private norAttr: THREE.BufferAttribute;
   private centers: THREE.Vector3[] = [];
-  private tmpT = new V(); private tmpN = new V(); private tmpB = new V(); private tmpP = new V(); private tmpQ = new V();
+  private tmpT = new V(); private tmpN = new V(); private tmpB = new V(); private tmpP = new V(); private tmpQ = new V(); private tmpPN = new V(); private tmpHeadDir = new V(0, 0, 1);
   private time = Math.random() * 10;
 
   constructor(color: THREE.ColorRepresentation) {
@@ -227,8 +227,8 @@ export class Dragon {
     const { R, S } = this;
     const F = this.tmpT.copy(dir).normalize();
     const up = Math.abs(F.y) > 0.95 ? this.tmpP.set(1, 0, 0) : this.tmpP.set(0, 1, 0);
-    const P = this.tmpQ.copy(F).cross(up).normalize();   // perpendicular 1
-    const Q = this.tmpB.copy(F).cross(P).normalize();    // perpendicular 2
+    const P = this.tmpQ.copy(F).cross(up).normalize();
+    const Q = this.tmpB.copy(F).cross(P).normalize();
     const L = length * ease.io(Math.min(1, grow));
     const lead = 0.55;
     for (let i = 0; i < R; i++) {
@@ -239,7 +239,7 @@ export class Dragon {
       c.copy(anchor).addScaledVector(F, lead - s * L).addScaledVector(P, Math.cos(ang) * amp).addScaledVector(Q, Math.sin(ang) * amp);
     }
     // parallel-transport frames
-    const T = new V(), N = new V(), B = new V(), pN = new V();
+    const T = this.tmpT; const N = this.tmpN; const B = this.tmpB; const pN = this.tmpPN;
     pN.copy(P);
     const pos = this.posAttr.array as Float32Array, nor = this.norAttr.array as Float32Array;
     for (let i = 0; i < R; i++) {
@@ -261,7 +261,7 @@ export class Dragon {
     this.posAttr.needsUpdate = true; this.norAttr.needsUpdate = true;
     // head sits on the first ring and looks along the punch
     this.head.position.copy(this.centers[0]).addScaledVector(F, 0.35);
-    this.head.quaternion.setFromUnitVectors(new V(0, 0, 1), F);
+    this.head.quaternion.setFromUnitVectors(this.tmpHeadDir, F);
     const hs = ease.out(Math.min(1, grow * 2.4)) * 1.15; this.head.scale.setScalar(Math.max(0.001, hs));
     this.jaw.rotation.x = Math.PI / 2 + 0.15 + (0.5 + 0.5 * Math.sin(this.time * 5)) * 0.35;
   }
